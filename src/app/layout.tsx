@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
+import { ReactQueryProvider } from "../components/ui/react-query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,10 +32,66 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <ReactQueryProvider>
+        <html lang="en">
+          <body className={`${geistSans.variable} ${geistMono.variable}`}>
+            <header
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "1rem 2rem",
+                borderBottom: "1px solid #eee",
+              }}
+            >
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: "1.5rem",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Chari-ty
+              </span>
+              <nav style={{ display: "flex", gap: "1rem" }}>
+                <SignedOut>
+                  <SignInButton>
+                    <button
+                      style={{
+                        padding: "0.5rem 1rem",
+                        borderRadius: 6,
+                        border: "1px solid #ccc",
+                        background: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton>
+                    <button
+                      style={{
+                        padding: "0.5rem 1rem",
+                        borderRadius: 6,
+                        border: "1px solid #ccc",
+                        background: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Register
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </nav>
+            </header>
+            {children}
+          </body>
+        </html>
+      </ReactQueryProvider>
+    </ClerkProvider>
   );
 }

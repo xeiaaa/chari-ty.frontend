@@ -1,95 +1,94 @@
-import Image from "next/image";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import styles from "./page.module.css";
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+export default async function Home() {
+  const { userId, getToken } = await auth();
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  if (!userId || !getToken) {
+    return (
+      <div
+        className={styles.page}
+        style={{
+          minHeight: "80vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <main style={{ textAlign: "center", maxWidth: 600 }}>
+          <h1
+            style={{
+              fontSize: "2.5rem",
+              fontWeight: 700,
+              marginBottom: "1rem",
+            }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
+            Welcome to Chari-ty
+          </h1>
+          <p
+            style={{ fontSize: "1.25rem", marginBottom: "2rem", color: "#444" }}
           >
-            Read our docs
-          </a>
+            Empowering communities through giving. Join us to make a
+            difference—sign in or register to get started!
+          </p>
+          <div
+            style={{ display: "flex", gap: "1rem", justifyContent: "center" }}
+          >
+            {/* Auth buttons are in the header */}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  let token: string | null = null;
+  token = await getToken();
+
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) throw new Error("NEXT_PUBLIC_API_URL not set");
+    const res = await fetch(`${apiUrl}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const user = await res.json();
+      if (user?.setupComplete === false) {
+        redirect("/onboarding");
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch /auth/me:", error);
+  }
+
+  return (
+    <div
+      className={styles.page}
+      style={{
+        minHeight: "80vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <main style={{ textAlign: "center", maxWidth: 600 }}>
+        <h1
+          style={{ fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" }}
+        >
+          Welcome to Chari-ty
+        </h1>
+        <p style={{ fontSize: "1.25rem", marginBottom: "2rem", color: "#444" }}>
+          Empowering communities through giving. Join us to make a
+          difference—sign in or register to get started!
+        </p>
+        <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+          {/* Auth buttons are in the header */}
         </div>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
