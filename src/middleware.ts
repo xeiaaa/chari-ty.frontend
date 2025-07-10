@@ -23,7 +23,7 @@ export default clerkMiddleware(async (auth, request) => {
     // Redirect to sign in for protected routes
     const { redirectToSignIn } = await auth();
     return redirectToSignIn({
-      returnBackUrl: "/dashboard" // Always redirect to dashboard after sign in
+      returnBackUrl: "/app/dashboard" // Always redirect to dashboard after sign in
     });
   }
 
@@ -53,7 +53,7 @@ export default clerkMiddleware(async (auth, request) => {
     // If setup is complete and trying to access onboarding, redirect to dashboard
     if (userData.setupComplete && path === onboardingPath) {
       console.log("[Middleware] Redirecting completed user from onboarding to dashboard");
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/app/dashboard", request.url));
     }
 
   } catch (error) {
