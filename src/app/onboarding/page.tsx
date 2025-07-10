@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+import { useApi, getErrorMessage } from "@/lib/api";
 
 const ACCOUNT_TYPES = [
   { value: "individual", label: "Individual" },
@@ -70,7 +72,12 @@ const defaultValues: Partial<OnboardingForm> = {
 const steps = ["Account Type", "Details", "Review & Confirm"] as const;
 
 export default function OnboardingPage() {
+  const router = useRouter();
+  const api = useApi();
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<OnboardingForm>({
     resolver: zodResolver(onboardingSchema),
     defaultValues,
@@ -144,9 +151,19 @@ export default function OnboardingPage() {
 
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
-  const onSubmit = (data: OnboardingForm) => {
-    // TODO: submit to backend
-    alert("Onboarding complete!\n" + JSON.stringify(data, null, 2));
+  const onSubmit = async (data: OnboardingForm) => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      await api.post("/auth/onboarding", data);
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Onboarding error:", error);
+      setError(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Helper function to safely access errors
@@ -452,11 +469,16 @@ export default function OnboardingPage() {
                 <pre className="bg-muted p-4 rounded-lg overflow-auto">
                   {JSON.stringify(form.getValues(), null, 2)}
                 </pre>
+                {error && (
+                  <div className="text-destructive text-sm">{error}</div>
+                )}
                 <div className="flex gap-4 justify-between">
                   <Button type="button" variant="outline" onClick={handleBack}>
                     Back
                   </Button>
-                  <Button type="submit">Complete Onboarding</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Completing..." : "Complete Onboarding"}
+                  </Button>
                 </div>
               </div>
             )}

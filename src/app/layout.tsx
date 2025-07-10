@@ -10,6 +10,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { ReactQueryProvider } from "../components/ui/react-query-provider";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,9 +55,24 @@ export default function RootLayout({
               >
                 Chari-ty
               </span>
-              <nav style={{ display: "flex", gap: "1rem" }}>
+              <nav
+                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+              >
+                <SignedIn>
+                  <Link
+                    href="/dashboard"
+                    style={{
+                      padding: "0.5rem 1rem",
+                      borderRadius: 6,
+                      textDecoration: "none",
+                      color: "inherit",
+                    }}
+                  >
+                    Dashboard
+                  </Link>
+                </SignedIn>
                 <SignedOut>
-                  <SignInButton>
+                  <SignInButton forceRedirectUrl="/dashboard">
                     <button
                       style={{
                         padding: "0.5rem 1rem",
@@ -69,7 +85,7 @@ export default function RootLayout({
                       Sign In
                     </button>
                   </SignInButton>
-                  <SignUpButton>
+                  <SignUpButton forceRedirectUrl="/dashboard">
                     <button
                       style={{
                         padding: "0.5rem 1rem",
@@ -79,7 +95,7 @@ export default function RootLayout({
                         cursor: "pointer",
                       }}
                     >
-                      Register
+                      Sign Up
                     </button>
                   </SignUpButton>
                 </SignedOut>

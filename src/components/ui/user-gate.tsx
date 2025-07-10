@@ -1,51 +1,38 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useUser } from "@/lib/hooks/use-user";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 interface UserGateProps {
   children: React.ReactNode;
+  requireSetup?: boolean;
 }
 
-export function UserGate({ children }: UserGateProps) {
-  const { getToken, isSignedIn, isLoaded } = useAuth();
+export function UserGate({ children, requireSetup = true }: UserGateProps) {
   const router = useRouter();
-
-  const fetchUser = async () => {
-    const token = await getToken();
-    if (!token) throw new Error("No token");
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) throw new Error("NEXT_PUBLIC_API_URL not set");
-    const res = await axios.get(`${apiUrl}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
-  };
-
-  const {
-    data: user,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["me"],
-    queryFn: fetchUser,
-    enabled: isLoaded && isSignedIn,
-    retry: false,
-  });
+  const { user, isLoading } = useUser();
 
   useEffect(() => {
-    if (user && isSignedIn && isLoaded && user.setupComplete === false) {
-      router.replace("/onboarding");
+    if (!isLoading) {
+      if (!user) {
+        router.push("/");
+      } else if (requireSetup && !user.setupComplete) {
+        router.push("/onboarding");
+      }
     }
-  }, [user, isSignedIn, isLoaded, router]);
+  }, [user, isLoading, router, requireSetup]);
 
-  if (!isLoaded) return null;
-  if (!isSignedIn) return null;
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Could not load user data.</div>;
-  if (user && user.setupComplete === false) return null;
+  if (isLoading) {
+    return <div>Loading...</div>; // Consider using a proper loading spinner
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (requireSetup && !user.setupComplete) {
+    return null;
+  }
 
   return <>{children}</>;
 }
