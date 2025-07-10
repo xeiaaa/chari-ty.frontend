@@ -56,6 +56,18 @@ export default function HomeLayout({
       <div className="flex flex-col min-h-screen bg-background">
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-30 h-16 border-b border-border px-4 lg:px-8 flex items-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="lg:hidden mr-2"
+          >
+            {isSidebarOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
           <TeamSwitcher />
           <div className="flex-1" />
           <div className="flex items-center gap-4">
@@ -95,20 +107,6 @@ export default function HomeLayout({
         </header>
 
         <div className="flex flex-1">
-          {/* Mobile Menu Button */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleSidebar}
-            className="lg:hidden fixed top-20 left-4 z-50"
-          >
-            {isSidebarOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
-
           {/* Sidebar */}
           <div
             className={cn(
@@ -144,7 +142,7 @@ export default function HomeLayout({
 
           {/* Main content */}
           <div className="flex-1 lg:pl-64">
-            <main className="p-4 lg:p-8 pt-20">
+            <main className="p-4 pt-28">
               {/* Overlay for mobile sidebar */}
               {isSidebarOpen && (
                 <div
