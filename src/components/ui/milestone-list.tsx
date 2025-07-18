@@ -6,6 +6,15 @@ import { Button } from "./button";
 import { Skeleton } from "./skeleton";
 import { useApi } from "@/lib/api";
 import { Target, CheckCircle, Plus, Edit, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "./dialog";
+import { Snackbar, useSnackbar } from "./snackbar";
 
 export interface Milestone {
   id: string;
@@ -38,6 +47,7 @@ export function MilestoneList({
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Milestone | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
   const { data: milestones, isLoading: isLoadingMilestones } = useQuery<
     Milestone[]
@@ -59,6 +69,13 @@ export function MilestoneList({
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setDeleteTarget(null);
       setConfirmOpen(false);
+      showSnackbar("Milestone deleted successfully!", "success");
+    },
+    onError: (error) => {
+      showSnackbar(
+        error instanceof Error ? error.message : "Failed to delete milestone",
+        "error"
+      );
     },
   });
 
@@ -202,30 +219,40 @@ export function MilestoneList({
       ))}
 
       {/* Confirmation Dialog */}
-      {confirmOpen && deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white dark:bg-background border border-border rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-2">Delete Milestone</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Delete Milestone</DialogTitle>
+            <DialogDescription>
               Are you sure you want to delete the milestone{" "}
-              <span className="font-semibold">{deleteTarget.title}</span>? This
+              <span className="font-semibold">{deleteTarget?.title}</span>? This
               action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => deleteMilestoneMutation.mutate(deleteTarget)}
-                disabled={deleteMilestoneMutation.isPending}
-              >
-                {deleteMilestoneMutation.isPending ? "Deleting..." : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                deleteTarget && deleteMilestoneMutation.mutate(deleteTarget)
+              }
+              disabled={deleteMilestoneMutation.isPending}
+            >
+              {deleteMilestoneMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        onClose={hideSnackbar}
+        message={snackbar.message}
+        type={snackbar.type}
+      />
     </div>
   );
 }
