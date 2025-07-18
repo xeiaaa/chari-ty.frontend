@@ -14,6 +14,12 @@ import {
   EditMilestoneForm,
 } from "@/components/ui/milestone-form";
 import { MilestoneList } from "@/components/ui/milestone-list";
+import {
+  LinkForm,
+  EditLinkForm,
+  type Link as LinkType,
+} from "@/components/ui/link-form";
+import { LinkList } from "@/components/ui/link-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
 
 interface Fundraiser {
@@ -58,6 +64,7 @@ export default function FundraiserDetailPage() {
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
     null
   );
+  const [editingLink, setEditingLink] = useState<LinkType | null>(null);
 
   const {
     data: fundraiser,
@@ -293,6 +300,34 @@ export default function FundraiserDetailPage() {
                   fundraiserId={fundraiserId}
                   currency={fundraiser.currency}
                   onEditMilestone={setEditingMilestone}
+                />
+              </div>
+
+              {/* Links */}
+              <div className="mt-12">
+                {editingLink ? (
+                  <EditLinkForm
+                    fundraiserId={fundraiserId}
+                    link={editingLink}
+                    onSuccess={() => {
+                      showSnackbar("Link updated successfully!", "success");
+                      setEditingLink(null);
+                    }}
+                    onError={(error) => showSnackbar(error, "error")}
+                    onCancel={() => setEditingLink(null)}
+                  />
+                ) : (
+                  <LinkForm
+                    fundraiserId={fundraiserId}
+                    onSuccess={() =>
+                      showSnackbar("Link created successfully!", "success")
+                    }
+                    onError={(error) => showSnackbar(error, "error")}
+                  />
+                )}
+                <LinkList
+                  fundraiserId={fundraiserId}
+                  onEditLink={setEditingLink}
                 />
               </div>
 

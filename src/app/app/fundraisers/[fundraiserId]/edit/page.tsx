@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/milestone-form";
 import { MilestoneList } from "@/components/ui/milestone-list";
 import type { Milestone } from "@/components/ui/milestone-list";
+import {
+  LinkForm,
+  EditLinkForm,
+  type Link as LinkType,
+} from "@/components/ui/link-form";
+import { LinkList } from "@/components/ui/link-list";
 
 // Enum values from backend
 const FUNDRAISER_CATEGORIES = [
@@ -177,6 +183,8 @@ export default function EditFundraiserPage() {
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
     null
   );
+  // Link edit state
+  const [editingLink, setEditingLink] = useState<LinkType | null>(null);
 
   // Update form when fundraiser data is loaded
   React.useEffect(() => {
@@ -537,7 +545,6 @@ export default function EditFundraiserPage() {
 
         {/* Milestones Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-4">Milestones</h2>
           {fundraiser && (
             <>
               {editingMilestone ? (
@@ -564,6 +571,38 @@ export default function EditFundraiserPage() {
                 fundraiserId={fundraiserId}
                 currency={fundraiser.currency}
                 onEditMilestone={setEditingMilestone}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Links Section */}
+        <div className="mt-12">
+          {fundraiser && (
+            <>
+              {editingLink ? (
+                <EditLinkForm
+                  fundraiserId={fundraiserId}
+                  link={editingLink}
+                  onSuccess={() => {
+                    showSnackbar("Link updated successfully!", "success");
+                    setEditingLink(null);
+                  }}
+                  onError={(error) => showSnackbar(error, "error")}
+                  onCancel={() => setEditingLink(null)}
+                />
+              ) : (
+                <LinkForm
+                  fundraiserId={fundraiserId}
+                  onSuccess={() =>
+                    showSnackbar("Link created successfully!", "success")
+                  }
+                  onError={(error) => showSnackbar(error, "error")}
+                />
+              )}
+              <LinkList
+                fundraiserId={fundraiserId}
+                onEditLink={setEditingLink}
               />
             </>
           )}
