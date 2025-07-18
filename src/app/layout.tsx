@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ReactQueryProvider } from "../components/ui/react-query-provider";
 import { RootLayoutContent } from "@/components/ui/root-layout-content";
+import { AccountProvider } from "@/contexts/account-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,13 +28,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <ReactQueryProvider>
-        <html lang="en">
-          <body className={`${geistSans.variable} ${geistMono.variable}`}>
-            <RootLayoutContent>{children}</RootLayoutContent>
-          </body>
-        </html>
-      </ReactQueryProvider>
+      <html lang="en">
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          <ReactQueryProvider>
+            <AccountProvider>
+              <RootLayoutContent>{children}</RootLayoutContent>
+            </AccountProvider>
+          </ReactQueryProvider>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }

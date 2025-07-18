@@ -157,7 +157,7 @@ export default function OnboardingPage() {
       setError(null);
 
       await api.post("/auth/onboarding", data);
-      router.push("/dashboard");
+      router.push("/app/dashboard");
     } catch (error) {
       console.error("Onboarding error:", error);
       setError(getErrorMessage(error));

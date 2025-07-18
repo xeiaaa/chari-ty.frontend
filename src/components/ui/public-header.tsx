@@ -26,7 +26,7 @@ export function PublicHeader() {
               Sign In
             </button>
           </SignInButton>
-          <SignUpButton forceRedirectUrl="/app/dashboard">
+          <SignUpButton forceRedirectUrl="/onboarding">
             <button className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors">
               Sign Up
             </button>

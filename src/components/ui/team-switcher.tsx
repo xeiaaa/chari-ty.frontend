@@ -16,25 +16,34 @@ import {
 import { useGroups, type Group } from "@/lib/hooks/use-groups";
 import { useState } from "react";
 import { Skeleton } from "./skeleton";
+import {
+  useAccount,
+  type Account,
+  PERSONAL_ACCOUNT,
+} from "@/contexts/account-context";
 
-const PERSONAL_ACCOUNT: Group = {
-  id: "personal",
-  type: "personal",
-  name: "Personal Account",
-  role: "owner",
-  dateActive: new Date().toISOString(),
-};
+// Helper function to convert Group to Account
+const groupToAccount = (group: Group): Account => ({
+  id: group.id,
+  type:
+    group.type === "personal"
+      ? "personal"
+      : (group.type as "team" | "nonprofit"),
+  name: group.name,
+  role: group.role,
+  dateActive: group.dateActive,
+});
 
 export function TeamSwitcher() {
   const { data: groups, isLoading } = useGroups();
+  const { selectedAccount, setSelectedAccount } = useAccount();
   const [open, setOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<Group>(PERSONAL_ACCOUNT);
 
   if (isLoading) {
     return <Skeleton className="h-9 w-[200px]" />;
   }
 
-  const allGroups = [PERSONAL_ACCOUNT, ...(groups || [])];
+  const allGroups = [PERSONAL_ACCOUNT, ...(groups || []).map(groupToAccount)];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -45,7 +54,7 @@ export function TeamSwitcher() {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {selectedGroup.name}
+          {selectedAccount.name}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -54,22 +63,24 @@ export function TeamSwitcher() {
           <CommandInput placeholder="Search team..." />
           <CommandEmpty>No team found.</CommandEmpty>
           <CommandGroup>
-            {allGroups.map((group) => (
+            {allGroups.map((account) => (
               <CommandItem
-                key={group.id}
-                value={group.name}
+                key={account.id}
+                value={account.name}
                 onSelect={() => {
-                  setSelectedGroup(group);
+                  setSelectedAccount(account);
                   setOpen(false);
                 }}
               >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    selectedGroup.id === group.id ? "opacity-100" : "opacity-0"
+                    selectedAccount.id === account.id
+                      ? "opacity-100"
+                      : "opacity-0"
                   )}
                 />
-                {group.name}
+                {account.name}
               </CommandItem>
             ))}
           </CommandGroup>
