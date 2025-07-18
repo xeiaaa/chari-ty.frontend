@@ -58,7 +58,7 @@ interface Milestone {
 
 export default function FundraiserDetailPage() {
   const params = useParams();
-  const fundraiserId = params.fundraiserId as string;
+  const slug = params.slug as string;
   const api = useApi();
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
@@ -71,9 +71,9 @@ export default function FundraiserDetailPage() {
     isLoading,
     error,
   } = useQuery<Fundraiser>({
-    queryKey: ["fundraiser", fundraiserId],
+    queryKey: ["fundraiser", slug],
     queryFn: async () => {
-      const response = await api.get(`/fundraisers/${fundraiserId}`);
+      const response = await api.get(`/fundraisers/slug/${slug}`);
       return response.data;
     },
   });
@@ -189,7 +189,7 @@ export default function FundraiserDetailPage() {
                   View Public Page
                 </Button>
               </Link>
-              <Link href={`/app/fundraisers/${fundraiser.id}/edit`}>
+              <Link href={`/app/fundraisers/${slug}/edit`}>
                 <Button variant="outline" size="sm">
                   Edit
                 </Button>
@@ -275,7 +275,7 @@ export default function FundraiserDetailPage() {
               <div>
                 {editingMilestone ? (
                   <EditMilestoneForm
-                    fundraiserId={fundraiserId}
+                    slug={slug}
                     milestone={editingMilestone}
                     onSuccess={() => {
                       showSnackbar(
@@ -289,7 +289,7 @@ export default function FundraiserDetailPage() {
                   />
                 ) : (
                   <MilestoneForm
-                    fundraiserId={fundraiserId}
+                    slug={slug}
                     onSuccess={() =>
                       showSnackbar("Milestone created successfully!", "success")
                     }
@@ -297,7 +297,7 @@ export default function FundraiserDetailPage() {
                   />
                 )}
                 <MilestoneList
-                  fundraiserId={fundraiserId}
+                  fundraiserId={fundraiser.id}
                   currency={fundraiser.currency}
                   onEditMilestone={setEditingMilestone}
                 />
@@ -307,7 +307,7 @@ export default function FundraiserDetailPage() {
               <div className="mt-12">
                 {editingLink ? (
                   <EditLinkForm
-                    fundraiserId={fundraiserId}
+                    fundraiserId={fundraiser.id}
                     link={editingLink}
                     onSuccess={() => {
                       showSnackbar("Link updated successfully!", "success");
@@ -318,7 +318,7 @@ export default function FundraiserDetailPage() {
                   />
                 ) : (
                   <LinkForm
-                    fundraiserId={fundraiserId}
+                    fundraiserId={fundraiser.id}
                     onSuccess={() =>
                       showSnackbar("Link created successfully!", "success")
                     }

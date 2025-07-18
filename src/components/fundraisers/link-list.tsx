@@ -16,7 +16,7 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import type { Link } from "./link-form";
-import { Fundraiser } from "@/app/app/fundraisers/[fundraiserId]/page";
+import { Fundraiser } from "@/app/app/fundraisers/[slug]/page";
 
 interface LinkListProps {
   fundraiser: Fundraiser;

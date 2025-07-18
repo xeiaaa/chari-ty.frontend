@@ -103,7 +103,7 @@ type UpdateFundraiserForm = z.infer<typeof updateFundraiserSchema>;
 
 export default function EditFundraiserPage() {
   const params = useParams();
-  const fundraiserId = params.fundraiserId as string;
+  const slug = params.slug as string;
   const router = useRouter();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -117,9 +117,9 @@ export default function EditFundraiserPage() {
     isLoading: isLoadingFundraiser,
     error: fetchError,
   } = useQuery<Fundraiser>({
-    queryKey: ["fundraiser", fundraiserId],
+    queryKey: ["fundraiser", slug],
     queryFn: async () => {
-      const response = await api.get(`/fundraisers/${fundraiserId}`);
+      const response = await api.get(`/fundraisers/${slug}`);
       return response.data;
     },
   });
@@ -213,11 +213,11 @@ export default function EditFundraiserPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fundraisers"] });
-      queryClient.invalidateQueries({ queryKey: ["fundraiser", fundraiserId] });
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       showSnackbar("Fundraiser updated successfully!", "success");
       // Delay navigation to allow snackbar to be seen
       setTimeout(() => {
-        router.push(`/app/fundraisers/${fundraiserId}`);
+        router.push(`/app/fundraisers/${slug}`);
       }, 1500);
     },
     onError: (error) => {
@@ -328,7 +328,7 @@ export default function EditFundraiserPage() {
       <div className="bg-card border border-border rounded-lg shadow-sm p-6">
         {/* Header */}
         <div className="flex flex-col gap-4 mb-6">
-          <Link href={`/app/fundraisers/${fundraiserId}`}>
+          <Link href={`/app/fundraisers/${slug}`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4" />
               Back to Fundraiser
@@ -529,7 +529,7 @@ export default function EditFundraiserPage() {
             <>
               {editingMilestone ? (
                 <EditMilestoneForm
-                  fundraiserId={fundraiserId}
+                  slug={slug}
                   milestone={editingMilestone}
                   onSuccess={() => {
                     showSnackbar("Milestone updated successfully!", "success");
@@ -540,7 +540,7 @@ export default function EditFundraiserPage() {
                 />
               ) : (
                 <MilestoneForm
-                  fundraiserId={fundraiserId}
+                  slug={slug}
                   onSuccess={() =>
                     showSnackbar("Milestone created successfully!", "success")
                   }
@@ -548,7 +548,7 @@ export default function EditFundraiserPage() {
                 />
               )}
               <MilestoneList
-                fundraiserId={fundraiserId}
+                fundraiserId={slug}
                 currency={fundraiser.currency}
                 onEditMilestone={setEditingMilestone}
               />
@@ -562,7 +562,7 @@ export default function EditFundraiserPage() {
             <>
               {editingLink ? (
                 <EditLinkForm
-                  fundraiserId={fundraiserId}
+                  fundraiserId={fundraiser.id}
                   link={editingLink}
                   onSuccess={() => {
                     showSnackbar("Link updated successfully!", "success");
@@ -573,7 +573,7 @@ export default function EditFundraiserPage() {
                 />
               ) : (
                 <LinkForm
-                  fundraiserId={fundraiserId}
+                  fundraiserId={fundraiser.id}
                   onSuccess={() =>
                     showSnackbar("Link created successfully!", "success")
                   }
