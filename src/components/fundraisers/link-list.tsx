@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "./button";
-import { Skeleton } from "./skeleton";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
 import { useApi } from "@/lib/api";
 import { Edit, Trash2, Plus } from "lucide-react";
-import { Snackbar, useSnackbar } from "./snackbar";
+import { Snackbar, useSnackbar } from "../ui/snackbar";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from "./dialog";
+} from "../ui/dialog";
 import type { Link } from "./link-form";
 
 interface LinkListProps {

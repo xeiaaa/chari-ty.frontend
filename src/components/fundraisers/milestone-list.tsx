@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "./button";
-import { Skeleton } from "./skeleton";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
 import { useApi } from "@/lib/api";
 import { Target, CheckCircle, Plus, Edit, Trash2 } from "lucide-react";
 import {
@@ -13,8 +13,8 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from "./dialog";
-import { Snackbar, useSnackbar } from "./snackbar";
+} from "../ui/dialog";
+import { Snackbar, useSnackbar } from "../ui/snackbar";
 
 export interface Milestone {
   id: string;

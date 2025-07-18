@@ -17,15 +17,15 @@ import Link from "next/link";
 import {
   MilestoneForm,
   EditMilestoneForm,
-} from "@/components/ui/milestone-form";
-import { MilestoneList } from "@/components/ui/milestone-list";
-import type { Milestone } from "@/components/ui/milestone-list";
+} from "@/components/fundraisers/milestone-form";
+import { MilestoneList } from "@/components/fundraisers/milestone-list";
+import type { Milestone } from "@/components/fundraisers/milestone-list";
 import {
   LinkForm,
   EditLinkForm,
   type Link as LinkType,
-} from "@/components/ui/link-form";
-import { LinkList } from "@/components/ui/link-list";
+} from "@/components/fundraisers/link-form";
+import { LinkList } from "@/components/fundraisers/link-list";
 
 // Enum values from backend
 const FUNDRAISER_CATEGORIES = [

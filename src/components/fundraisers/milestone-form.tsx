@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as z from "zod";
-import { Button } from "./button";
-import { FormField } from "./form-field";
+import { Button } from "../ui/button";
+import { FormField } from "../ui/form-field";
 import { useApi, getErrorMessage } from "@/lib/api";
 import { Plus } from "lucide-react";
 

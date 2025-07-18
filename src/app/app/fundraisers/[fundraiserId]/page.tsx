@@ -12,14 +12,14 @@ import { Snackbar, useSnackbar } from "@/components/ui/snackbar";
 import {
   MilestoneForm,
   EditMilestoneForm,
-} from "@/components/ui/milestone-form";
-import { MilestoneList } from "@/components/ui/milestone-list";
+} from "@/components/fundraisers/milestone-form";
+import { MilestoneList } from "@/components/fundraisers/milestone-list";
 import {
   LinkForm,
   EditLinkForm,
   type Link as LinkType,
-} from "@/components/ui/link-form";
-import { LinkList } from "@/components/ui/link-list";
+} from "@/components/fundraisers/link-form";
+import { LinkList } from "@/components/fundraisers/link-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
 
 interface Fundraiser {
