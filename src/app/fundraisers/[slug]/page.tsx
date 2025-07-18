@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DonationDialog } from "@/components/ui/donation-dialog";
 import { api } from "@/lib/utils";
 import { Calendar, Globe, Users, Share2, Heart } from "lucide-react";
+import { TimelineMilestoneList } from "@/components/fundraisers/timeline-milestone-list";
 
 interface Fundraiser {
   id: string;
@@ -261,6 +262,12 @@ export default function PublicFundraiserPage() {
                       {fundraiser.description}
                     </p>
                   </div>
+                </div>
+
+                {/* Milestones Timeline */}
+                <div className="mt-12">
+                  <h2 className="text-2xl font-bold mb-4">Milestones</h2>
+                  <TimelineMilestoneList fundraiserId={fundraiser.id} />
                 </div>
 
                 {/* Gallery */}
