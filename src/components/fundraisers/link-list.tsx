@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { useApi } from "@/lib/api";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, Copy } from "lucide-react";
 import { Snackbar, useSnackbar } from "../ui/snackbar";
 import {
   Dialog,
@@ -16,13 +16,14 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import type { Link } from "./link-form";
+import { Fundraiser } from "@/app/app/fundraisers/[fundraiserId]/page";
 
 interface LinkListProps {
-  fundraiserId: string;
+  fundraiser: Fundraiser;
   onEditLink?: (link: Link) => void;
 }
 
-export function LinkList({ fundraiserId, onEditLink }: LinkListProps) {
+export function LinkList({ fundraiser, onEditLink }: LinkListProps) {
   const api = useApi();
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Link | null>(null);
@@ -30,19 +31,19 @@ export function LinkList({ fundraiserId, onEditLink }: LinkListProps) {
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
   const { data: links, isLoading } = useQuery<Link[]>({
-    queryKey: ["links", fundraiserId],
+    queryKey: ["links", fundraiser.id],
     queryFn: async () => {
-      const response = await api.get(`/fundraisers/${fundraiserId}/links`);
+      const response = await api.get(`/fundraisers/${fundraiser.id}/links`);
       return response.data;
     },
   });
 
   const deleteLinkMutation = useMutation({
     mutationFn: async (link: Link) => {
-      await api.delete(`/fundraisers/${fundraiserId}/links/${link.id}`);
+      await api.delete(`/fundraisers/${fundraiser.id}/links/${link.id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["links", fundraiserId] });
+      queryClient.invalidateQueries({ queryKey: ["links", fundraiser.id] });
       setDeleteTarget(null);
       setConfirmOpen(false);
       showSnackbar("Link deleted successfully!", "success");
@@ -54,6 +55,18 @@ export function LinkList({ fundraiserId, onEditLink }: LinkListProps) {
       );
     },
   });
+
+  const handleCopyLink = async (alias: string) => {
+    const url = `${
+      process.env.NEXT_FRONTEND_URL ?? "http://localhost:3001"
+    }/fundraisers/${fundraiser.slug}?alias=${encodeURIComponent(alias)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      showSnackbar("Link copied to clipboard!", "success");
+    } catch {
+      showSnackbar("Failed to copy link", "error");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -100,6 +113,16 @@ export function LinkList({ fundraiserId, onEditLink }: LinkListProps) {
             )}
           </div>
           <div className="flex items-center gap-2 ml-4">
+            {/* Copy Link Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopyLink(link.alias)}
+              className="h-8 w-8 p-0"
+              title="Copy link"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
             {onEditLink && (
               <Button
                 variant="ghost"

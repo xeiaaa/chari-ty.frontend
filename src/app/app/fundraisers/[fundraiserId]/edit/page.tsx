@@ -26,6 +26,7 @@ import {
   type Link as LinkType,
 } from "@/components/fundraisers/link-form";
 import { LinkList } from "@/components/fundraisers/link-list";
+import { Fundraiser } from "../page";
 
 // Enum values from backend
 const FUNDRAISER_CATEGORIES = [
@@ -99,27 +100,6 @@ const updateFundraiserSchema = z.object({
 });
 
 type UpdateFundraiserForm = z.infer<typeof updateFundraiserSchema>;
-
-interface Fundraiser {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  description: string;
-  category: string;
-  goalAmount: string;
-  currency: string;
-  endDate?: string;
-  coverUrl: string;
-  galleryUrls: string[];
-  ownerType: "user" | "group";
-  userId?: string;
-  groupId?: string;
-  status: string;
-  isPublic: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export default function EditFundraiserPage() {
   const params = useParams();
@@ -211,7 +191,7 @@ export default function EditFundraiserPage() {
         currency: fundraiser.currency,
         endDate: fundraiser.endDate || "",
         coverUrl: fundraiser.coverUrl,
-        galleryUrls: fundraiser.galleryUrls.map((url) => ({ url })),
+        galleryUrls: fundraiser.galleryUrls.map((url: string) => ({ url })),
         isPublic: fundraiser.isPublic,
       });
     }
@@ -600,10 +580,7 @@ export default function EditFundraiserPage() {
                   onError={(error) => showSnackbar(error, "error")}
                 />
               )}
-              <LinkList
-                fundraiserId={fundraiserId}
-                onEditLink={setEditingLink}
-              />
+              <LinkList fundraiser={fundraiser} onEditLink={setEditingLink} />
             </>
           )}
         </div>

@@ -22,7 +22,7 @@ import {
 import { LinkList } from "@/components/fundraisers/link-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
 
-interface Fundraiser {
+export interface Fundraiser {
   id: string;
   slug: string;
   title: string;
@@ -325,10 +325,7 @@ export default function FundraiserDetailPage() {
                     onError={(error) => showSnackbar(error, "error")}
                   />
                 )}
-                <LinkList
-                  fundraiserId={fundraiserId}
-                  onEditLink={setEditingLink}
-                />
+                <LinkList onEditLink={setEditingLink} fundraiser={fundraiser} />
               </div>
 
               {/* Gallery */}
