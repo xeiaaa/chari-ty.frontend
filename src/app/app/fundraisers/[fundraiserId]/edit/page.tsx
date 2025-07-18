@@ -10,9 +10,16 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { useApi, getErrorMessage } from "@/lib/api";
+import { Snackbar, useSnackbar } from "@/components/ui/snackbar";
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import {
+  MilestoneForm,
+  EditMilestoneForm,
+} from "@/components/ui/milestone-form";
+import { MilestoneList } from "@/components/ui/milestone-list";
+import type { Milestone } from "@/components/ui/milestone-list";
 
 // Enum values from backend
 const FUNDRAISER_CATEGORIES = [
@@ -116,6 +123,7 @@ export default function EditFundraiserPage() {
   const queryClient = useQueryClient();
 
   const [error, setError] = useState<string | null>(null);
+  const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
   // Fetch existing fundraiser data
   const {
@@ -165,6 +173,11 @@ export default function EditFundraiserPage() {
     name: "galleryUrls",
   });
 
+  // Milestone edit state
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
+    null
+  );
+
   // Update form when fundraiser data is loaded
   React.useEffect(() => {
     if (fundraiser) {
@@ -213,10 +226,16 @@ export default function EditFundraiserPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fundraisers"] });
       queryClient.invalidateQueries({ queryKey: ["fundraiser", fundraiserId] });
-      router.push(`/app/fundraisers/${fundraiserId}`);
+      showSnackbar("Fundraiser updated successfully!", "success");
+      // Delay navigation to allow snackbar to be seen
+      setTimeout(() => {
+        router.push(`/app/fundraisers/${fundraiserId}`);
+      }, 1500);
     },
     onError: (error) => {
-      setError(getErrorMessage(error));
+      const errorMessage = getErrorMessage(error);
+      setError(errorMessage);
+      showSnackbar(errorMessage, "error");
     },
   });
 
@@ -515,7 +534,48 @@ export default function EditFundraiserPage() {
             </Button>
           </div>
         </form>
+
+        {/* Milestones Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-4">Milestones</h2>
+          {fundraiser && (
+            <>
+              {editingMilestone ? (
+                <EditMilestoneForm
+                  fundraiserId={fundraiserId}
+                  milestone={editingMilestone}
+                  onSuccess={() => {
+                    showSnackbar("Milestone updated successfully!", "success");
+                    setEditingMilestone(null);
+                  }}
+                  onError={(error) => showSnackbar(error, "error")}
+                  onCancel={() => setEditingMilestone(null)}
+                />
+              ) : (
+                <MilestoneForm
+                  fundraiserId={fundraiserId}
+                  onSuccess={() =>
+                    showSnackbar("Milestone created successfully!", "success")
+                  }
+                  onError={(error) => showSnackbar(error, "error")}
+                />
+              )}
+              <MilestoneList
+                fundraiserId={fundraiserId}
+                currency={fundraiser.currency}
+                onEditMilestone={setEditingMilestone}
+              />
+            </>
+          )}
+        </div>
       </div>
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        onClose={hideSnackbar}
+        message={snackbar.message}
+        type={snackbar.type}
+      />
     </div>
   );
 }

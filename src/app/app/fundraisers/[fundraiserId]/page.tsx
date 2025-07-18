@@ -5,8 +5,15 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 
 import { useApi } from "@/lib/api";
+import { Snackbar, useSnackbar } from "@/components/ui/snackbar";
+import {
+  MilestoneForm,
+  EditMilestoneForm,
+} from "@/components/ui/milestone-form";
+import { MilestoneList } from "@/components/ui/milestone-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
 
 interface Fundraiser {
@@ -30,10 +37,27 @@ interface Fundraiser {
   updatedAt: string;
 }
 
+interface Milestone {
+  id: string;
+  fundraiserId: string;
+  stepNumber: number;
+  amount: string;
+  title: string;
+  purpose: string;
+  achieved: boolean;
+  achievedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function FundraiserDetailPage() {
   const params = useParams();
   const fundraiserId = params.fundraiserId as string;
   const api = useApi();
+  const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
+    null
+  );
 
   const {
     data: fundraiser,
@@ -42,7 +66,7 @@ export default function FundraiserDetailPage() {
   } = useQuery<Fundraiser>({
     queryKey: ["fundraiser", fundraiserId],
     queryFn: async () => {
-      const response = await api.get(`/fundraisers/slug/${fundraiserId}`);
+      const response = await api.get(`/fundraisers/${fundraiserId}`);
       return response.data;
     },
   });
@@ -240,6 +264,38 @@ export default function FundraiserDetailPage() {
                 </div>
               </div>
 
+              {/* Milestones */}
+              <div>
+                {editingMilestone ? (
+                  <EditMilestoneForm
+                    fundraiserId={fundraiserId}
+                    milestone={editingMilestone}
+                    onSuccess={() => {
+                      showSnackbar(
+                        "Milestone updated successfully!",
+                        "success"
+                      );
+                      setEditingMilestone(null);
+                    }}
+                    onError={(error) => showSnackbar(error, "error")}
+                    onCancel={() => setEditingMilestone(null)}
+                  />
+                ) : (
+                  <MilestoneForm
+                    fundraiserId={fundraiserId}
+                    onSuccess={() =>
+                      showSnackbar("Milestone created successfully!", "success")
+                    }
+                    onError={(error) => showSnackbar(error, "error")}
+                  />
+                )}
+                <MilestoneList
+                  fundraiserId={fundraiserId}
+                  currency={fundraiser.currency}
+                  onEditMilestone={setEditingMilestone}
+                />
+              </div>
+
               {/* Gallery */}
               {fundraiser.galleryUrls.length > 0 && (
                 <div>
@@ -342,6 +398,14 @@ export default function FundraiserDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        onClose={hideSnackbar}
+        message={snackbar.message}
+        type={snackbar.type}
+      />
     </div>
   );
 }
