@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,11 @@ export interface Fundraiser {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  progress: {
+    totalRaised: string;
+    donationCount: number;
+    progressPercentage: number;
+  };
 }
 
 interface Milestone {
@@ -60,6 +65,7 @@ export default function FundraiserDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   const api = useApi();
+  const queryClient = useQueryClient();
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
     null
@@ -76,7 +82,46 @@ export default function FundraiserDetailPage() {
       const response = await api.get(`/fundraisers/slug/${slug}`);
       return response.data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
+
+  const publishMutation = useMutation({
+    mutationFn: async ({ published }: { published: boolean }) => {
+      const response = await api.patch(
+        `/fundraisers/${fundraiser!.id}/publish`,
+        {
+          published,
+        }
+      );
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      const action = variables.published ? "published" : "unpublished";
+      showSnackbar(`Fundraiser ${action} successfully!`, "success");
+      // Refetch the fundraiser data to get updated status
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
+    },
+    onError: (error) => {
+      showSnackbar(
+        error instanceof Error
+          ? error.message
+          : "Failed to update fundraiser status",
+        "error"
+      );
+    },
+  });
+
+  const handlePublishToggle = () => {
+    if (!fundraiser) return;
+
+    const isCurrentlyPublished = fundraiser.status === "published";
+    const newPublishedStatus = !isCurrentlyPublished;
+
+    publishMutation.mutate({ published: newPublishedStatus });
+  };
 
   const formatCurrency = (amount: string, currency: string) => {
     return new Intl.NumberFormat("en-US", {
@@ -371,23 +416,44 @@ export default function FundraiserDetailPage() {
                   <div className="w-full bg-muted rounded-full h-3">
                     <div
                       className="bg-primary h-3 rounded-full"
-                      style={{ width: "0%" }} // TODO: Calculate actual progress when donations are implemented
+                      style={{
+                        width: `${
+                          fundraiser.progress?.progressPercentage || 0
+                        }%`,
+                      }}
                     />
                   </div>
                   <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>$0 raised</span>
-                    <span>0% of goal</span>
+                    <span>
+                      {formatCurrency(
+                        fundraiser.progress?.totalRaised || "0",
+                        fundraiser.currency
+                      )}{" "}
+                      raised
+                    </span>
+                    <span>
+                      {Math.round(
+                        fundraiser.progress?.progressPercentage || 0
+                      ).toString()}
+                      % of goal
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="space-y-3">
-                <Button className="w-full" size="lg">
-                  Donate Now
-                </Button>
-                <Button variant="outline" className="w-full">
-                  Share
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handlePublishToggle}
+                  disabled={publishMutation.isPending}
+                >
+                  {publishMutation.isPending
+                    ? "Updating..."
+                    : fundraiser?.status === "published"
+                    ? "Unpublish"
+                    : "Publish"}
                 </Button>
               </div>
 

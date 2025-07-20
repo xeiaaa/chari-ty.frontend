@@ -9,7 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DonationDialog } from "@/components/ui/donation-dialog";
 import { api } from "@/lib/utils";
 import { Calendar, Globe, Users, Share2, Heart } from "lucide-react";
-import { TimelineMilestoneList } from "@/components/fundraisers/timeline-milestone-list";
+import {
+  PublicTimelineMilestone,
+  PublicTimelineMilestoneList,
+} from "@/components/fundraisers/public-timeline-milestone-list";
 
 interface Fundraiser {
   id: string;
@@ -30,6 +33,12 @@ interface Fundraiser {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  progress: {
+    totalRaised: string;
+    donationCount: number;
+    progressPercentage: number;
+  };
+  milestones: PublicTimelineMilestone[];
 }
 
 export default function PublicFundraiserPage() {
@@ -267,7 +276,9 @@ export default function PublicFundraiserPage() {
                 {/* Milestones Timeline */}
                 <div className="mt-12">
                   <h2 className="text-2xl font-bold mb-4">Milestones</h2>
-                  <TimelineMilestoneList fundraiserId={fundraiser.id} />
+                  <PublicTimelineMilestoneList
+                    milestones={fundraiser.milestones}
+                  />
                 </div>
 
                 {/* Gallery */}
@@ -313,12 +324,27 @@ export default function PublicFundraiserPage() {
                     <div className="w-full bg-muted rounded-full h-3">
                       <div
                         className="bg-primary h-3 rounded-full"
-                        style={{ width: "0%" }} // TODO: Calculate actual progress when donations are implemented
+                        style={{
+                          width: `${
+                            fundraiser.progress?.progressPercentage || 0
+                          }%`,
+                        }}
                       />
                     </div>
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
-                      <span>$0 raised</span>
-                      <span>0% of goal</span>
+                      <span>
+                        {formatCurrency(
+                          fundraiser.progress?.totalRaised || "0",
+                          fundraiser.currency
+                        )}{" "}
+                        raised
+                      </span>
+                      <span>
+                        {Math.round(
+                          fundraiser.progress?.progressPercentage || 0
+                        )}
+                        % of goal
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import styles from "./page.module.css";
+import { RecentFundraisers } from "@/components/fundraisers/recent-fundraisers";
 
 export default async function Home() {
   const { userId, getToken } = await auth();
@@ -39,6 +40,9 @@ export default async function Home() {
             {/* Auth buttons are in the header */}
           </div>
         </main>
+
+        {/* Recent Fundraisers Section */}
+        <RecentFundraisers limit={6} />
       </div>
     );
   }
@@ -89,6 +93,9 @@ export default async function Home() {
           {/* Auth buttons are in the header */}
         </div>
       </main>
+
+      {/* Recent Fundraisers Section */}
+      <RecentFundraisers limit={6} />
     </div>
   );
 }

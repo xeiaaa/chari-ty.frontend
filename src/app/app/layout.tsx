@@ -115,7 +115,12 @@ export default function HomeLayout({
             )}
           >
             <div className="flex h-16 items-center px-6">
-              <h1 className="text-xl font-bold">Chari-ty</h1>
+              <Link
+                href="/"
+                className="text-xl font-bold hover:opacity-80 transition-opacity"
+              >
+                Chari-ty
+              </Link>
             </div>
             <nav className="flex flex-col gap-1 p-4">
               {navigation.map((item) => {

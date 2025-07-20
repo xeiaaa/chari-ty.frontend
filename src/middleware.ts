@@ -6,7 +6,7 @@ interface UserData {
   setupComplete: boolean;
 }
 
-const publicPaths = ["/", "/api/webhooks(.*)"];
+const privatePaths = ["/app(.*)", "/onboarding"];
 const onboardingPath = "/onboarding";
 
 export default clerkMiddleware(async (auth, request) => {
@@ -17,14 +17,15 @@ export default clerkMiddleware(async (auth, request) => {
 
   // If not logged in, only allow public routes
   if (!userId) {
-    if (isPublicPath(path)) {
-      return NextResponse.next();
+    if (isPrivatePath(path)) {
+      // Redirect to sign in for protected routes
+      const { redirectToSignIn } = await auth();
+      return redirectToSignIn({
+        returnBackUrl: "/app/dashboard" // Always redirect to dashboard after sign in
+      });
     }
-    // Redirect to sign in for protected routes
-    const { redirectToSignIn } = await auth();
-    return redirectToSignIn({
-      returnBackUrl: "/app/dashboard" // Always redirect to dashboard after sign in
-    });
+    // Allow access to public routes
+    return NextResponse.next();
   }
 
   // User is logged in - check their setup status
@@ -65,8 +66,8 @@ export default clerkMiddleware(async (auth, request) => {
   return NextResponse.next();
 });
 
-function isPublicPath(path: string): boolean {
-  return publicPaths.some(pattern => {
+function isPrivatePath(path: string): boolean {
+  return privatePaths.some(pattern => {
     if (pattern.endsWith("(.*)")) {
       return path.startsWith(pattern.slice(0, -4));
     }

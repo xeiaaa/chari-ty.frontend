@@ -10,7 +10,12 @@ import Link from "next/link";
 export function PublicHeader() {
   return (
     <header className="flex items-center justify-between px-8 py-4 border-b border-border">
-      <span className="text-2xl font-bold tracking-wider">Chari-ty</span>
+      <Link
+        href="/"
+        className="text-2xl font-bold tracking-wider hover:opacity-80 transition-opacity"
+      >
+        Chari-ty
+      </Link>
       <nav className="flex items-center gap-4">
         <SignedIn>
           <Link

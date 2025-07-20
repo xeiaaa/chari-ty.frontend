@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAccount } from "@/contexts/account-context";
 import { useApi } from "@/lib/api";
 
 interface Fundraiser {
@@ -31,6 +30,17 @@ interface Fundraiser {
     donationCount: number;
     progressPercentage: number;
   };
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  group?: {
+    id: string;
+    name: string;
+    description: string;
+  };
 }
 
 interface FundraisersResponse {
@@ -44,21 +54,12 @@ interface FundraisersResponse {
 }
 
 export default function FundraisersPage() {
-  const { selectedAccount, isPersonalAccount } = useAccount();
   const api = useApi();
 
   const { data, isLoading, error } = useQuery<FundraisersResponse>({
-    queryKey: ["fundraisers", selectedAccount.id],
+    queryKey: ["public-fundraisers"],
     queryFn: async () => {
-      const params = new URLSearchParams();
-
-      // For personal accounts, don't send groupId (will show user's personal fundraisers)
-      // For group accounts, send the groupId to filter by that specific group
-      if (!isPersonalAccount) {
-        params.append("groupId", selectedAccount.id);
-      }
-
-      const response = await api.get(`/fundraisers?${params.toString()}`);
+      const response = await api.get("/public/fundraisers");
       return response.data;
     },
   });
@@ -82,11 +83,8 @@ export default function FundraisersPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold">Fundraisers</h1>
-            <Link href="/app/fundraisers/create">
-              <Button>Create Fundraiser</Button>
-            </Link>
           </div>
           <div className="text-center py-8">
             <p className="text-destructive">Failed to load fundraisers</p>
@@ -100,20 +98,13 @@ export default function FundraisersPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto my-12">
       <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Fundraisers</h1>
-            <p className="text-muted-foreground mt-1">
-              {isPersonalAccount
-                ? "Your personal fundraisers"
-                : `${selectedAccount.name} fundraisers`}
-            </p>
-          </div>
-          <Link href="/app/fundraisers/create">
-            <Button>Create Fundraiser</Button>
-          </Link>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Fundraisers</h1>
+          <p className="text-muted-foreground mt-1">
+            Discover inspiring causes and make a difference
+          </p>
         </div>
 
         {isLoading ? (
@@ -144,13 +135,8 @@ export default function FundraisersPage() {
                 No fundraisers found
               </h3>
               <p className="text-muted-foreground mb-4">
-                {isPersonalAccount
-                  ? "You haven't created any fundraisers yet."
-                  : `${selectedAccount.name} doesn't have any fundraisers yet.`}
+                No fundraisers are available at the moment. Check back soon!
               </p>
-              <Link href="/app/fundraisers/create">
-                <Button>Create Your First Fundraiser</Button>
-              </Link>
             </div>
           </div>
         ) : (
@@ -190,6 +176,26 @@ export default function FundraisersPage() {
                       <span>•</span>
                       <span>{formatDate(fundraiser.createdAt)}</span>
                     </div>
+                    <div className="text-xs text-muted-foreground">
+                      by{" "}
+                      {fundraiser.group ? (
+                        <Link
+                          href={`/groups/${fundraiser.group.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {fundraiser.group.name}
+                        </Link>
+                      ) : fundraiser.user ? (
+                        <Link
+                          href={`/users/${fundraiser.user.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {fundraiser.user.firstName} {fundraiser.user.lastName}
+                        </Link>
+                      ) : (
+                        "Unknown"
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -222,21 +228,13 @@ export default function FundraisersPage() {
                       <span className="capitalize">{fundraiser.status}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4">
+                  <div className="mt-4">
                     <Link
-                      href={`/app/fundraisers/${fundraiser.slug}`}
-                      className="flex-1"
+                      href={`/fundraisers/${fundraiser.slug}`}
+                      className="w-full"
                     >
                       <Button variant="outline" size="sm" className="w-full">
                         View
-                      </Button>
-                    </Link>
-                    <Link
-                      href={`/app/fundraisers/${fundraiser.id}/edit`}
-                      className="flex-1"
-                    >
-                      <Button variant="secondary" size="sm" className="w-full">
-                        Edit
                       </Button>
                     </Link>
                   </div>
