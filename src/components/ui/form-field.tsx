@@ -2,12 +2,7 @@ import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type {
-  UseFormRegister,
-  RegisterOptions,
-  Path,
-  FieldValues,
-} from "react-hook-form";
+import type { UseFormRegister, Path, FieldValues } from "react-hook-form";
 
 interface FormFieldBaseProps<TFieldValues extends FieldValues> {
   label: string;
