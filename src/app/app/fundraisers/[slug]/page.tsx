@@ -334,7 +334,7 @@ export default function FundraiserDetailPage() {
                   />
                 ) : (
                   <MilestoneForm
-                    slug={slug}
+                    fundraiserId={fundraiser.id}
                     onSuccess={() =>
                       showSnackbar("Milestone created successfully!", "success")
                     }

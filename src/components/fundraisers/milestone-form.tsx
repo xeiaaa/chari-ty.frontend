@@ -55,7 +55,7 @@ interface Milestone {
 }
 
 interface MilestoneFormProps {
-  slug: string;
+  fundraiserId: string;
   onSuccess?: () => void;
   onError?: (error: string) => void;
 }
@@ -69,7 +69,7 @@ interface EditMilestoneFormProps {
 }
 
 export function MilestoneForm({
-  slug,
+  fundraiserId,
   onSuccess,
   onError,
 }: MilestoneFormProps) {
@@ -77,7 +77,7 @@ export function MilestoneForm({
   const [error, setError] = useState<string | null>(null);
   const api = useApi();
   const queryClient = useQueryClient();
-
+  console.log("fundraiserId", fundraiserId);
   const form = useForm<CreateMilestoneForm>({
     resolver: zodResolver(createMilestoneSchema),
     defaultValues: {
@@ -98,12 +98,15 @@ export function MilestoneForm({
   // Create milestone mutation
   const createMilestoneMutation = useMutation({
     mutationFn: async (data: CreateMilestoneForm) => {
-      const response = await api.post(`/fundraisers/${slug}/milestones`, data);
+      const response = await api.post(
+        `/fundraisers/${fundraiserId}/milestones`,
+        data
+      );
 
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["milestones", slug] });
+      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       reset();
       setShowForm(false);
       setError(null);

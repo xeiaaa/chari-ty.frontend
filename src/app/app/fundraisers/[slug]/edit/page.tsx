@@ -119,7 +119,7 @@ export default function EditFundraiserPage() {
   } = useQuery<Fundraiser>({
     queryKey: ["fundraiser", slug],
     queryFn: async () => {
-      const response = await api.get(`/fundraisers/${slug}`);
+      const response = await api.get(`/fundraisers/slug/${slug}`);
       return response.data;
     },
   });
@@ -539,16 +539,18 @@ export default function EditFundraiserPage() {
                   onCancel={() => setEditingMilestone(null)}
                 />
               ) : (
-                <MilestoneForm
-                  slug={slug}
-                  onSuccess={() =>
-                    showSnackbar("Milestone created successfully!", "success")
-                  }
-                  onError={(error) => showSnackbar(error, "error")}
-                />
+                <>
+                  <MilestoneForm
+                    fundraiserId={fundraiser.id}
+                    onSuccess={() =>
+                      showSnackbar("Milestone created successfully!", "success")
+                    }
+                    onError={(error) => showSnackbar(error, "error")}
+                  />
+                </>
               )}
               <MilestoneList
-                fundraiserId={slug}
+                fundraiserId={fundraiser.id}
                 currency={fundraiser.currency}
                 onEditMilestone={setEditingMilestone}
               />
