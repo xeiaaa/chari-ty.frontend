@@ -35,11 +35,13 @@ interface Fundraiser {
     firstName: string;
     lastName: string;
     email: string;
+    username: string;
   };
   group?: {
     id: string;
     name: string;
     description: string;
+    slug: string;
   };
 }
 
@@ -180,14 +182,14 @@ export default function FundraisersPage() {
                       by{" "}
                       {fundraiser.group ? (
                         <Link
-                          href={`/groups/${fundraiser.group.id}`}
+                          href={`/groups/${fundraiser.group.slug}`}
                           className="text-primary hover:underline"
                         >
                           {fundraiser.group.name}
                         </Link>
                       ) : fundraiser.user ? (
                         <Link
-                          href={`/users/${fundraiser.user.id}`}
+                          href={`/users/${fundraiser.user.username}`}
                           className="text-primary hover:underline"
                         >
                           {fundraiser.user.firstName} {fundraiser.user.lastName}
