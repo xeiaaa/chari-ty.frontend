@@ -232,7 +232,7 @@ export default function FundraisersPage() {
                       </Button>
                     </Link>
                     <Link
-                      href={`/app/fundraisers/${fundraiser.id}/edit`}
+                      href={`/app/fundraisers/${fundraiser.slug}/edit`}
                       className="flex-1"
                     >
                       <Button variant="secondary" size="sm" className="w-full">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,8 +11,9 @@ import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { useApi, getErrorMessage } from "@/lib/api";
 import { useAccount } from "@/contexts/account-context";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, X } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
 
 // Enum values from backend
 const FUNDRAISER_CATEGORIES = [
@@ -37,6 +38,14 @@ const CURRENCIES = [
   { value: "GBP", label: "GBP (£)" },
   { value: "CAD", label: "CAD ($)" },
 ] as const;
+
+// Upload signature response type
+interface UploadSignature {
+  signature: string;
+  timestamp: number;
+  apiKey: string;
+  cloudName: string;
+}
 
 // Zod schema matching backend CreateFundraiserDto
 const createFundraiserSchema = z.object({
@@ -70,7 +79,7 @@ const createFundraiserSchema = z.object({
   goalAmount: z.coerce.number().min(1, "Goal amount must be greater than 0"),
   currency: z.string().min(1, "Currency is required"),
   endDate: z.string().optional(),
-  coverUrl: z.string().url("Cover URL must be a valid URL"),
+  coverUrl: z.string().optional(),
   galleryUrls: z
     .array(z.object({ url: z.string().url("Gallery URL must be a valid URL") }))
     .optional(),
@@ -85,6 +94,11 @@ export default function CreateFundraiserPage() {
   const queryClient = useQueryClient();
   const { selectedAccount, isPersonalAccount } = useAccount();
   const [error, setError] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
+    null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<CreateFundraiserForm>({
     resolver: zodResolver(createFundraiserSchema),
@@ -107,6 +121,7 @@ export default function CreateFundraiserPage() {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isValid },
   } = form;
 
@@ -120,11 +135,104 @@ export default function CreateFundraiserPage() {
     name: "galleryUrls",
   });
 
+  // Get upload signature mutation
+  const getUploadSignatureMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post("/uploads/signature", {
+        folder: "fundraisers",
+      });
+      return response.data as UploadSignature;
+    },
+  });
+
+  // Upload to Cloudinary mutation
+  const uploadToCloudinaryMutation = useMutation({
+    mutationFn: async ({
+      file,
+      signature,
+    }: {
+      file: File;
+      signature: UploadSignature;
+    }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", signature.apiKey);
+      formData.append("timestamp", signature.timestamp.toString());
+      formData.append("signature", signature.signature);
+      formData.append("folder", "fundraisers");
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    },
+  });
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file");
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size must be less than 5MB");
+        return;
+      }
+
+      setCoverImage(file);
+      setError(null);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCoverImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (file: File): Promise<string> => {
+    try {
+      // Get upload signature
+      const signature = await getUploadSignatureMutation.mutateAsync();
+
+      // Upload to Cloudinary
+      const result = await uploadToCloudinaryMutation.mutateAsync({
+        file,
+        signature,
+      });
+
+      return result.secure_url;
+    } catch {
+      throw new Error("Failed to upload image");
+    }
+  };
+
   // Create fundraiser mutation
   const createFundraiserMutation = useMutation({
     mutationFn: async (data: CreateFundraiserForm) => {
+      let coverUrl = data.coverUrl;
+
+      // Upload cover image if selected
+      if (coverImage) {
+        coverUrl = await handleFileUpload(coverImage);
+      }
+
       const payload = {
         ...data,
+        coverUrl,
         galleryUrls: data.galleryUrls?.map((g) => g.url).filter(Boolean) || [],
         endDate: data.endDate || undefined,
         ownerType: isPersonalAccount ? "user" : "group",
@@ -145,6 +253,13 @@ export default function CreateFundraiserPage() {
 
   const onSubmit = (data: CreateFundraiserForm) => {
     setError(null);
+
+    // Validate that either coverUrl is provided or coverImage is selected
+    if (!data.coverUrl && !coverImage) {
+      setError("Cover image is required");
+      return;
+    }
+
     createFundraiserMutation.mutate(data);
   };
 
@@ -162,6 +277,18 @@ export default function CreateFundraiserPage() {
     };
     return fieldErrors?.[index]?.[subField]?.message ?? "";
   };
+
+  const removeCoverImage = () => {
+    setCoverImage(null);
+    setCoverImagePreview(null);
+    setValue("coverUrl", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Check if form is valid (including cover image validation)
+  const isFormValid = isValid && (coverImage || form.getValues("coverUrl"));
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -288,15 +415,66 @@ export default function CreateFundraiserPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Media</h2>
 
-            <FormField<CreateFundraiserForm>
-              label="Cover Image URL"
-              register={register}
-              name="coverUrl"
-              type="url"
-              required
-              placeholder="https://example.com/image.jpg"
-              error={getFieldError("coverUrl")}
-            />
+            {/* Cover Image Upload */}
+            <div className="space-y-2">
+              <Label>Cover Image</Label>
+              <input type="hidden" {...register("coverUrl")} />
+
+              {coverImagePreview ? (
+                <div className="relative">
+                  <img
+                    src={coverImagePreview}
+                    alt="Cover preview"
+                    className="w-full h-48 object-cover rounded-lg border border-border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={removeCoverImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <Upload className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    PNG, JPG, GIF up to 5MB
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose Image
+                  </Button>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {getFieldError("coverUrl") && (
+                <span className="text-destructive text-xs">
+                  {getFieldError("coverUrl")}
+                </span>
+              )}
+              {!coverImage && !form.getValues("coverUrl") && (
+                <span className="text-destructive text-xs">
+                  Cover image is required
+                </span>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label>Gallery Images (Optional)</Label>
@@ -379,10 +557,17 @@ export default function CreateFundraiserPage() {
           <div className="flex justify-end pt-6">
             <Button
               type="submit"
-              disabled={!isValid || createFundraiserMutation.isPending}
+              disabled={
+                !isFormValid ||
+                createFundraiserMutation.isPending ||
+                getUploadSignatureMutation.isPending ||
+                uploadToCloudinaryMutation.isPending
+              }
               className="min-w-[120px]"
             >
-              {createFundraiserMutation.isPending
+              {createFundraiserMutation.isPending ||
+              getUploadSignatureMutation.isPending ||
+              uploadToCloudinaryMutation.isPending
                 ? "Creating..."
                 : "Create Fundraiser"}
             </Button>
