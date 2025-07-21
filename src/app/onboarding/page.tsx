@@ -89,7 +89,7 @@ export default function OnboardingPage() {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isValid },
+    formState: { errors, isValid, touchedFields, submitCount },
     trigger,
     setValue,
   } = form;
@@ -312,7 +312,11 @@ export default function OnboardingPage() {
                       register={register}
                       name="teamName"
                       required
-                      error={getFieldError("teamName")}
+                      error={
+                        "teamName" in touchedFields || submitCount > 0
+                          ? getFieldError("teamName")
+                          : undefined
+                      }
                     />
                     <FormField<OnboardingForm>
                       label="Mission"
