@@ -96,21 +96,16 @@ export function PublicTimelineMilestoneList({
       {/* Vertical line */}
       <div className="timeline-line" />
       <div className="timeline-list">
-        {milestones.map((milestone, idx) => {
-          const isLeft = idx % 2 === 0;
-          return (
-            <div key={milestone.id} className="timeline-row">
-              {/* Left card or spacer */}
-              {isLeft ? (
-                <div className="flex justify-start w-1/2 min-w-0 p-5">
-                  {renderMilestoneCard(milestone)}
-                </div>
-              ) : (
-                <div className="w-1/2" />
-              )}
-              {/* Dot */}
-              <div className="flex flex-col items-center z-10">
-                <div className="flex items-center justify-center">
+        {/* Mobile: single column, Card -> Dot (except last) -> Card ... */}
+        <div className="block sm:hidden">
+          {milestones.map((milestone, idx) => (
+            <React.Fragment key={milestone.id}>
+              <div className="w-full flex justify-center items-center">
+                {renderMilestoneCard(milestone)}
+              </div>
+              {/* Dot between cards, except after last card */}
+              {idx !== milestones.length - 1 && (
+                <div className="flex justify-center my-4">
                   <div
                     className={`timeline-dot-outer ${
                       milestone.achieved
@@ -125,18 +120,61 @@ export function PublicTimelineMilestoneList({
                     />
                   </div>
                 </div>
-              </div>
-              {/* Right card or spacer */}
-              {!isLeft ? (
-                <div className="flex justify-start w-1/2 min-w-0 p-5">
-                  {renderMilestoneCard(milestone)}
-                </div>
-              ) : (
-                <div className="w-1/2" />
               )}
-            </div>
-          );
-        })}
+            </React.Fragment>
+          ))}
+        </div>
+        {/* Desktop: alternating left/right with dot always centered */}
+        <div className="hidden sm:block">
+          {milestones.map((milestone, idx) => {
+            const isLeft = idx % 2 === 0;
+            return (
+              <div
+                key={milestone.id}
+                className="timeline-row flex flex-row w-full items-center justify-between gap-0 relative"
+              >
+                {/* Left card or empty */}
+                <div
+                  className={
+                    isLeft
+                      ? "w-1/2 min-w-0 p-5 flex justify-end items-center"
+                      : "w-1/2 min-w-0 p-5"
+                  }
+                >
+                  {isLeft && renderMilestoneCard(milestone)}
+                </div>
+                {/* Dot (always centered on the line) */}
+                <div className="flex flex-col items-center z-10 w-auto">
+                  <div className="flex items-center justify-center h-auto">
+                    <div
+                      className={`timeline-dot-outer ${
+                        milestone.achieved
+                          ? "bg-green-100 ring-2 ring-green-500"
+                          : ""
+                      }`}
+                    >
+                      <div
+                        className={`timeline-dot-inner ${
+                          milestone.achieved ? "bg-green-500" : ""
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* Right card or empty */}
+                <div
+                  className={
+                    !isLeft
+                      ? "w-1/2 min-w-0 p-5 flex justify-start items-center"
+                      : "w-1/2 min-w-0 p-5"
+                  }
+                >
+                  {!isLeft && renderMilestoneCard(milestone)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
