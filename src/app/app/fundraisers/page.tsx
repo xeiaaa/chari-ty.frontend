@@ -44,8 +44,10 @@ interface FundraisersResponse {
 }
 
 export default function FundraisersPage() {
-  const { selectedAccount, isPersonalAccount } = useAccount();
+  const { selectedAccount } = useAccount();
   const api = useApi();
+
+  const isPersonalAccount = selectedAccount.type === "individual";
 
   const { data, isLoading, error } = useQuery<FundraisersResponse>({
     queryKey: ["fundraisers", selectedAccount.id],
