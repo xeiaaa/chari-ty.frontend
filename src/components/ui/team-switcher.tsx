@@ -16,22 +16,16 @@ import {
 import { useGroups, type Group } from "@/lib/hooks/use-groups";
 import { useState } from "react";
 import { Skeleton } from "./skeleton";
-import {
-  useAccount,
-  type Account,
-  PERSONAL_ACCOUNT,
-} from "@/contexts/account-context";
+import { useAccount, type Account } from "@/contexts/account-context";
 
 // Helper function to convert Group to Account
 const groupToAccount = (group: Group): Account => ({
   id: group.id,
-  type:
-    group.type === "personal"
-      ? "personal"
-      : (group.type as "team" | "nonprofit"),
-  name: group.name,
+  type: group.type as "team" | "nonprofit" | "individual",
+  name: group.type === "individual" ? "Personal Account" : group.name,
   role: group.role,
   dateActive: group.dateActive,
+  slug: group.slug,
 });
 
 export function TeamSwitcher() {
@@ -43,7 +37,14 @@ export function TeamSwitcher() {
     return <Skeleton className="h-9 w-[200px]" />;
   }
 
-  const allGroups = [PERSONAL_ACCOUNT, ...(groups || []).map(groupToAccount)];
+  // Sort groups so that individual (Personal Account) appears first
+  const sortedGroups = (groups || []).sort((a, b) => {
+    if (a.type === "individual" && b.type !== "individual") return -1;
+    if (a.type !== "individual" && b.type === "individual") return 1;
+    return 0;
+  });
+
+  const allGroups = sortedGroups.map(groupToAccount);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -92,7 +92,7 @@ export default function CreateFundraiserPage() {
   const router = useRouter();
   const api = useApi();
   const queryClient = useQueryClient();
-  const { selectedAccount, isPersonalAccount } = useAccount();
+  const { selectedAccount } = useAccount();
   const [error, setError] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
@@ -235,9 +235,7 @@ export default function CreateFundraiserPage() {
         coverUrl,
         galleryUrls: data.galleryUrls?.map((g) => g.url).filter(Boolean) || [],
         endDate: data.endDate || undefined,
-        ownerType: isPersonalAccount ? "user" : "group",
-        userId: isPersonalAccount ? undefined : undefined, // Will be set by backend from auth
-        groupId: isPersonalAccount ? undefined : selectedAccount.id,
+        groupId: selectedAccount.id,
       };
       const response = await api.post("/fundraisers", payload);
       return response.data;
@@ -521,7 +519,9 @@ export default function CreateFundraiserPage() {
                 </span>
                 <span className="text-sm">{selectedAccount.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  ({isPersonalAccount ? "Personal" : "Group"})
+                  (
+                  {selectedAccount.type === "individual" ? "Personal" : "Group"}
+                  )
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">

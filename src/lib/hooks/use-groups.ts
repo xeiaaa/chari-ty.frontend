@@ -7,9 +7,10 @@ export interface Group {
   name: string;
   role: string;
   dateActive: string;
+  slug: string;
 }
 
-export function useGroups() {
+export function useGroups(enabled: boolean = true) {
   const api = useApi();
 
   return useQuery({
@@ -18,5 +19,6 @@ export function useGroups() {
       const { data } = await api.get<Group[]>("/auth/me/groups");
       return data;
     },
+    enabled,
   });
 }
