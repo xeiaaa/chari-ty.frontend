@@ -4,8 +4,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import { useApi } from "@/lib/api";
 import { Snackbar, useSnackbar } from "@/components/ui/snackbar";
@@ -71,6 +86,10 @@ export default function FundraiserDetailPage() {
     null
   );
   const [editingLink, setEditingLink] = useState<LinkType | null>(null);
+  const router = useRouter();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const {
     data: fundraiser,
@@ -110,6 +129,21 @@ export default function FundraiserDetailPage() {
           ? error.message
           : "Failed to update fundraiser status",
         "error"
+      );
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/fundraisers/${fundraiser!.id}`);
+    },
+    onSuccess: () => {
+      showSnackbar("Fundraiser deleted successfully!", "success");
+      router.push("/app/fundraisers");
+    },
+    onError: (error) => {
+      setDeleteError(
+        error instanceof Error ? error.message : "Failed to delete fundraiser"
       );
     },
   });
@@ -239,6 +273,42 @@ export default function FundraiserDetailPage() {
                   Edit
                 </Button>
               </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteDialogOpen(true);
+                        setDeleteInput("");
+                        setDeleteError(null);
+                      }}
+                      disabled={
+                        fundraiser.status === "published" ||
+                        (fundraiser.progress?.donationCount ?? 0) > 0
+                      }
+                      style={{ pointerEvents: "auto" }}
+                      className={
+                        fundraiser.status === "published" ||
+                        (fundraiser.progress?.donationCount ?? 0) > 0
+                          ? "cursor-not-allowed"
+                          : ""
+                      }
+                    >
+                      Delete
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {((fundraiser.progress?.donationCount ?? 0) > 0 ||
+                  fundraiser.status === "published") && (
+                  <TooltipContent side="top">
+                    {fundraiser.status === "published"
+                      ? "You can only delete an unpublished fundraiser."
+                      : "You cannot delete a fundraiser that has received donations."}
+                  </TooltipContent>
+                )}
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -504,6 +574,79 @@ export default function FundraiserDetailPage() {
         message={snackbar.message}
         type={snackbar.type}
       />
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent showCloseButton={!deleteMutation.isPending}>
+          <DialogHeader>
+            <DialogTitle>Delete Fundraiser</DialogTitle>
+            <div className="text-muted-foreground text-sm">
+              <div className="flex items-center gap-4 mb-4">
+                <img
+                  src={fundraiser.coverUrl}
+                  alt={fundraiser.title}
+                  className="w-20 h-20 object-cover rounded border border-border bg-muted"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                />
+                <div>
+                  <div className="font-semibold text-lg">
+                    {fundraiser.title}
+                  </div>
+                  <div className="text-muted-foreground text-sm mt-1">
+                    {fundraiser.summary}
+                  </div>
+                </div>
+              </div>
+              <div>
+                This action{" "}
+                <span className="font-semibold text-destructive">
+                  cannot be undone
+                </span>
+                .<br />
+                This will permanently delete the fundraiser{" "}
+                <span className="font-semibold">{fundraiser.title}</span> and
+                all its data.
+                <br />
+                Please type{" "}
+                <span className="font-semibold">{fundraiser.title}</span> to
+                confirm.
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="delete-confirm-input">Fundraiser Title</Label>
+            <Input
+              id="delete-confirm-input"
+              value={deleteInput}
+              onChange={(e) => setDeleteInput(e.target.value)}
+              disabled={deleteMutation.isPending}
+              autoFocus
+              placeholder={fundraiser.title}
+              aria-invalid={deleteError ? true : undefined}
+            />
+            {deleteError && (
+              <div className="text-destructive text-sm">{deleteError}</div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate()}
+              disabled={
+                deleteInput !== fundraiser.title || deleteMutation.isPending
+              }
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
