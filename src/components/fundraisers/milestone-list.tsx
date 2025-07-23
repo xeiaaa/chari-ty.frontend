@@ -2,10 +2,24 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "../ui/button";
+import { FormField } from "../ui/form-field";
 import { Skeleton } from "../ui/skeleton";
 import { useApi } from "@/lib/api";
-import { Target, CheckCircle, Plus, Edit, Trash2 } from "lucide-react";
+import {
+  Target,
+  CheckCircle,
+  Plus,
+  Edit,
+  Trash2,
+  Upload,
+  X,
+  Image,
+  Video,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +29,17 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import { Snackbar, useSnackbar } from "../ui/snackbar";
+import axios from "axios";
+
+// Schema for milestone completion form
+const completeMilestoneSchema = z.object({
+  completionDetails: z
+    .string()
+    .min(1, "Completion details are required")
+    .max(1000, "Completion details must be less than 1000 characters"),
+});
+
+type CompleteMilestoneForm = z.infer<typeof completeMilestoneSchema>;
 
 export interface Milestone {
   id: string;
@@ -37,6 +62,14 @@ interface MilestoneListProps {
   onDeleteMilestone?: (milestone: Milestone) => void;
 }
 
+// Upload signature response type
+interface UploadSignature {
+  signature: string;
+  timestamp: number;
+  apiKey: string;
+  cloudName: string;
+}
+
 export function MilestoneList({
   fundraiserId,
   currency,
@@ -47,7 +80,28 @@ export function MilestoneList({
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Milestone | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [completingMilestone, setCompletingMilestone] =
+    useState<Milestone | null>(null);
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
+
+  // Get upload signature mutation
+  const getUploadSignatureMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post("/uploads/signature", {
+        folder: "milestone-proof",
+      });
+      return response.data as UploadSignature;
+    },
+  });
+
+  const completionForm = useForm<CompleteMilestoneForm>({
+    resolver: zodResolver(completeMilestoneSchema),
+    defaultValues: {
+      completionDetails: "",
+    },
+  });
 
   const { data: milestones, isLoading: isLoadingMilestones } = useQuery<
     Milestone[]
@@ -78,6 +132,96 @@ export function MilestoneList({
       );
     },
   });
+
+  const completeMilestoneMutation = useMutation({
+    mutationFn: async (data: {
+      milestoneId: string;
+      completionDetails: string;
+      files: File[];
+    }) => {
+      // First upload files if any
+      const uploadedUrls: string[] = [];
+
+      if (data.files.length > 0) {
+        for (const file of data.files) {
+          // Get upload signature
+          const signature = await getUploadSignatureMutation.mutateAsync();
+
+          // Upload to Cloudinary
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("api_key", signature.apiKey);
+          formData.append("timestamp", signature.timestamp.toString());
+          formData.append("signature", signature.signature);
+          formData.append("folder", "milestone-proof");
+
+          const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+          uploadedUrls.push(response.data.secure_url);
+        }
+      }
+
+      // Then complete the milestone with details and proof URLs
+      const response = await api.patch(
+        `/fundraisers/${fundraiserId}/milestones/${data.milestoneId}/complete`,
+        {
+          completionDetails: data.completionDetails,
+          proofUrls: uploadedUrls,
+        }
+      );
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
+      setCompletingMilestone(null);
+      setCompletionDialogOpen(false);
+      setUploadedFiles([]);
+      completionForm.reset();
+      showSnackbar("Completion details saved successfully!", "success");
+    },
+    onError: (error) => {
+      showSnackbar(
+        error instanceof Error
+          ? error.message
+          : "Failed to save completion details",
+        "error"
+      );
+    },
+  });
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setUploadedFiles((prev) => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCompleteMilestone = (data: CompleteMilestoneForm) => {
+    if (!completingMilestone) return;
+
+    completeMilestoneMutation.mutate({
+      milestoneId: completingMilestone.id,
+      completionDetails: data.completionDetails,
+      files: uploadedFiles,
+    });
+  };
+
+  const openCompletionDialog = (milestone: Milestone) => {
+    setCompletingMilestone(milestone);
+    setCompletionDialogOpen(true);
+    setUploadedFiles([]);
+    completionForm.reset();
+  };
 
   const formatCurrency = (amount: string, currency: string) => {
     return new Intl.NumberFormat("en-US", {
@@ -179,44 +323,170 @@ export function MilestoneList({
                 </div>
               </div>
             </div>
-            {/* Action buttons - only show for non-achieved milestones */}
-            {!milestone.achieved && (
-              <div className="flex items-center gap-2 ml-4">
-                {onEditMilestone && (
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 ml-4">
+              {milestone.achieved ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openCompletionDialog(milestone)}
+                    className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    Add Details
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {onEditMilestone && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEditMilestone(milestone)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onEditMilestone(milestone)}
-                    className="h-8 w-8 p-0"
+                    onClick={() => {
+                      setDeleteTarget(milestone);
+                      setConfirmOpen(true);
+                    }}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    disabled={
+                      deleteMilestoneMutation.isPending &&
+                      deleteTarget?.id === milestone.id
+                    }
                   >
-                    <Edit className="h-4 w-4" />
+                    {deleteMilestoneMutation.isPending &&
+                    deleteTarget?.id === milestone.id ? (
+                      <span className="animate-spin h-4 w-4 block border-2 border-destructive border-t-transparent rounded-full" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setDeleteTarget(milestone);
-                    setConfirmOpen(true);
-                  }}
-                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                  disabled={
-                    deleteMilestoneMutation.isPending &&
-                    deleteTarget?.id === milestone.id
-                  }
-                >
-                  {deleteMilestoneMutation.isPending &&
-                  deleteTarget?.id === milestone.id ? (
-                    <span className="animate-spin h-4 w-4 block border-2 border-destructive border-t-transparent rounded-full" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       ))}
+
+      {/* Completion Dialog */}
+      <Dialog
+        open={completionDialogOpen}
+        onOpenChange={setCompletionDialogOpen}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add Completion Details</DialogTitle>
+            <DialogDescription>
+              Add details about how you completed &ldquo;
+              {completingMilestone?.title}&rdquo; and upload proof
+              (images/videos) of your work.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={completionForm.handleSubmit(handleCompleteMilestone)}
+            className="space-y-6"
+          >
+            <FormField<CompleteMilestoneForm>
+              label="Completion Details"
+              register={completionForm.register}
+              name="completionDetails"
+              textarea
+              placeholder="Describe how you completed this milestone. What did you do? What items did you purchase? Any challenges you faced?"
+              error={completionForm.formState.errors.completionDetails?.message}
+              rows={4}
+            />
+
+            {/* File Upload Section */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Upload Proof (Images/Videos)
+                </label>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Upload images or videos as proof of completion
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="proof-upload"
+                  />
+                  <label htmlFor="proof-upload">
+                    <Button variant="outline" size="sm" asChild>
+                      <span>Choose Files</span>
+                    </Button>
+                  </label>
+                </div>
+              </div>
+
+              {/* Uploaded Files Preview */}
+              {uploadedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Uploaded Files:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="relative border rounded-lg p-2 bg-muted/50"
+                      >
+                        <div className="flex items-center gap-2">
+                          {file.type.startsWith("image/") ? (
+                            <Image className="h-4 w-4 text-blue-600" />
+                          ) : (
+                            <Video className="h-4 w-4 text-purple-600" />
+                          )}
+                          <span className="text-xs truncate flex-1">
+                            {file.name}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setCompletionDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={completeMilestoneMutation.isPending}
+              >
+                {completeMilestoneMutation.isPending
+                  ? "Saving..."
+                  : "Save Details"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

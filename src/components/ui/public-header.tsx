@@ -33,16 +33,17 @@ export function PublicHeader() {
           )}
         </SignedIn>
         <SignedOut>
-          <SignInButton forceRedirectUrl="/app/dashboard">
+          <Link href="/signin">
             <button className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors">
               Sign In
             </button>
-          </SignInButton>
-          <SignUpButton forceRedirectUrl="/onboarding">
+          </Link>
+
+          <Link href="/signup">
             <button className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors">
               Sign Up
             </button>
-          </SignUpButton>
+          </Link>
         </SignedOut>
         <SignedIn>
           <UserButton afterSignOutUrl="/" />
