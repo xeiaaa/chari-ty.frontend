@@ -29,6 +29,7 @@ const ThankYouPage = () => {
     { name: "Tidus", amount: 57 },
     { name: "Yuna", amount: 11 },
     { name: "Rikku", amount: 11 },
+    { name: "Mark Anthony", amount: 110 },
   ];
 
   return (

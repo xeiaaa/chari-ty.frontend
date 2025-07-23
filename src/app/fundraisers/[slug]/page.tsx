@@ -275,7 +275,15 @@ export default function PublicFundraiserPage() {
 
                 {/* Milestones Timeline */}
                 <div className="mt-12">
-                  <h2 className="text-2xl font-bold mb-4">Milestones</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold">Milestones</h2>
+                    <Link
+                      href={`/fundraisers/${fundraiser.slug}/milestones`}
+                      className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      See Milestone Journey →
+                    </Link>
+                  </div>
                   <PublicTimelineMilestoneList
                     milestones={fundraiser.milestones}
                   />
