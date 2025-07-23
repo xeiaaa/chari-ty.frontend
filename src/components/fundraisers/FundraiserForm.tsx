@@ -44,25 +44,27 @@ interface UploadSignature {
   cloudName: string;
 }
 
+export enum FundraiserCategory {
+  EDUCATION = "education",
+  HEALTH = "health",
+  DISASTER_RELIEF = "disaster_relief",
+  ENVIRONMENT = "environment",
+  ANIMALS = "animals",
+  CHILDREN = "children",
+  COMMUNITY = "community",
+  ARTS = "arts",
+  SPORTS = "sports",
+  FOOD = "food",
+  HOUSING = "housing",
+  TECHNOLOGY = "technology",
+  OTHER = "other",
+}
+
 export const fundraiserSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   summary: z.string().min(1, "Summary is required").max(200),
   description: z.string().min(1, "Description is required").max(5000),
-  category: z.enum([
-    "education",
-    "health",
-    "disaster_relief",
-    "environment",
-    "animals",
-    "children",
-    "community",
-    "arts",
-    "sports",
-    "food",
-    "housing",
-    "technology",
-    "other",
-  ]),
+  category: z.enum(Object.values(FundraiserCategory) as [string, ...string[]]),
   goalAmount: z.coerce.number().min(1, "Goal amount must be greater than 0"),
   currency: z.string().min(1, "Currency is required"),
   endDate: z.string().optional(),
