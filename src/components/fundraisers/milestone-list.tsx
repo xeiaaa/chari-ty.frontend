@@ -17,8 +17,6 @@ import {
   Trash2,
   Upload,
   X,
-  Image,
-  Video,
 } from "lucide-react";
 import {
   Dialog,
@@ -52,6 +50,8 @@ export interface Milestone {
   achievedAt?: string;
   createdAt: string;
   updatedAt: string;
+  completionDetails?: string;
+  proofUrls?: string[];
 }
 
 interface MilestoneListProps {
@@ -84,6 +84,7 @@ export function MilestoneList({
     useState<Milestone | null>(null);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [existingProofUrls, setExistingProofUrls] = useState<string[]>([]);
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
   // Get upload signature mutation
@@ -139,44 +140,35 @@ export function MilestoneList({
       completionDetails: string;
       files: File[];
     }) => {
-      // First upload files if any
+      // First upload new files if any
       const uploadedUrls: string[] = [];
-
       if (data.files.length > 0) {
         for (const file of data.files) {
-          // Get upload signature
           const signature = await getUploadSignatureMutation.mutateAsync();
-
-          // Upload to Cloudinary
           const formData = new FormData();
           formData.append("file", file);
           formData.append("api_key", signature.apiKey);
           formData.append("timestamp", signature.timestamp.toString());
           formData.append("signature", signature.signature);
           formData.append("folder", "milestone-proof");
-
           const response = await axios.post(
             `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
             formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
+            { headers: { "Content-Type": "multipart/form-data" } }
           );
           uploadedUrls.push(response.data.secure_url);
         }
       }
-
+      // Combine existing and new
+      const allProofUrls = [...existingProofUrls, ...uploadedUrls];
       // Then complete the milestone with details and proof URLs
       const response = await api.patch(
         `/fundraisers/${fundraiserId}/milestones/${data.milestoneId}/complete`,
         {
           completionDetails: data.completionDetails,
-          proofUrls: uploadedUrls,
+          proofUrls: allProofUrls,
         }
       );
-
       return response.data;
     },
     onSuccess: () => {
@@ -206,6 +198,10 @@ export function MilestoneList({
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeExistingProofUrl = (index: number) => {
+    setExistingProofUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleCompleteMilestone = (data: CompleteMilestoneForm) => {
     if (!completingMilestone) return;
 
@@ -220,7 +216,10 @@ export function MilestoneList({
     setCompletingMilestone(milestone);
     setCompletionDialogOpen(true);
     setUploadedFiles([]);
-    completionForm.reset();
+    setExistingProofUrls(milestone.proofUrls || []);
+    completionForm.reset({
+      completionDetails: milestone.completionDetails || "",
+    });
   };
 
   const formatCurrency = (amount: string, currency: string) => {
@@ -431,22 +430,69 @@ export function MilestoneList({
                 </div>
               </div>
 
-              {/* Uploaded Files Preview */}
-              {uploadedFiles.length > 0 && (
+              {/* Uploaded Files Preview (existing URLs and new files) */}
+              {(existingProofUrls.length > 0 || uploadedFiles.length > 0) && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Uploaded Files:</h4>
+                  <h4 className="text-sm font-medium">Proof:</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {existingProofUrls.map((url, index) => (
+                      <div
+                        key={url}
+                        className="relative border rounded-lg p-2 bg-muted/50 flex flex-col items-center"
+                      >
+                        {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                          <img
+                            src={url}
+                            alt="proof"
+                            className="w-full h-24 object-cover rounded mb-1"
+                          />
+                        ) : (
+                          <video
+                            src={url}
+                            className="w-full h-24 object-cover rounded mb-1"
+                            controls
+                          />
+                        )}
+                        <div className="flex items-center gap-2 w-full">
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs truncate flex-1 underline"
+                          >
+                            {url.split("/").pop()}
+                          </a>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeExistingProofUrl(index)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                     {uploadedFiles.map((file, index) => (
                       <div
-                        key={index}
-                        className="relative border rounded-lg p-2 bg-muted/50"
+                        key={file.name + index}
+                        className="relative border rounded-lg p-2 bg-muted/50 flex flex-col items-center"
                       >
-                        <div className="flex items-center gap-2">
-                          {file.type.startsWith("image/") ? (
-                            <Image className="h-4 w-4 text-blue-600" />
-                          ) : (
-                            <Video className="h-4 w-4 text-purple-600" />
-                          )}
+                        {file.type.startsWith("image/") ? (
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={file.name}
+                            className="w-full h-24 object-cover rounded mb-1"
+                          />
+                        ) : (
+                          <video
+                            src={URL.createObjectURL(file)}
+                            className="w-full h-24 object-cover rounded mb-1"
+                            controls
+                          />
+                        )}
+                        <div className="flex items-center gap-2 w-full">
                           <span className="text-xs truncate flex-1">
                             {file.name}
                           </span>
