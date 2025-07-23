@@ -54,6 +54,7 @@ const NameScroller: React.FC<Props> = ({ donations, canvasStyle = {} }) => {
       span.style.top = `${y}px`;
       span.style.whiteSpace = "nowrap";
       span.style.fontSize = `${fontSize}px`;
+
       span.style.color = "black";
       span.style.fontFamily = "roboto, sans-serif";
       span.style.opacity = "0";

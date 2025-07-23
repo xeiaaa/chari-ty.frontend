@@ -1,3 +1,5 @@
+"use client";
+
 import {
   SignedIn,
   SignedOut,
@@ -6,8 +8,11 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function PublicHeader() {
+  const pathname = usePathname();
+
   return (
     <header className="flex items-center justify-between px-8 py-4 border-b border-border">
       <Link
@@ -18,24 +23,27 @@ export function PublicHeader() {
       </Link>
       <nav className="flex items-center gap-4">
         <SignedIn>
-          <Link
-            href="/app/dashboard"
-            className="px-4 py-2 rounded-md hover:bg-muted transition-colors"
-          >
-            Dashboard
-          </Link>
+          {pathname !== "/onboarding" && (
+            <Link
+              href="/app/dashboard"
+              className="px-4 py-2 rounded-md hover:bg-muted transition-colors"
+            >
+              Dashboard
+            </Link>
+          )}
         </SignedIn>
         <SignedOut>
-          <SignInButton forceRedirectUrl="/app/dashboard">
+          <Link href="/signin">
             <button className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors">
               Sign In
             </button>
-          </SignInButton>
-          <SignUpButton forceRedirectUrl="/onboarding">
+          </Link>
+
+          <Link href="/signup">
             <button className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors">
               Sign Up
             </button>
-          </SignUpButton>
+          </Link>
         </SignedOut>
         <SignedIn>
           <UserButton afterSignOutUrl="/" />
