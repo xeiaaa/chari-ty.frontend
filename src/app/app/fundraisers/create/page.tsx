@@ -14,6 +14,8 @@ import { useAccount } from "@/contexts/account-context";
 import { ArrowLeft, Upload, X } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import { FormSelect } from "@/components/ui/form-select";
+import type { FormSelectOption } from "@/components/ui/form-select";
 
 // Enum values from backend
 const FUNDRAISER_CATEGORIES = [
@@ -324,23 +326,15 @@ export default function CreateFundraiserPage() {
               />
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  {...register("category")}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
-                >
-                  {FUNDRAISER_CATEGORIES.map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
-                {getFieldError("category") && (
-                  <span className="text-destructive text-xs">
-                    {getFieldError("category")}
-                  </span>
-                )}
+                <FormSelect
+                  label="Category"
+                  name="category"
+                  options={
+                    FUNDRAISER_CATEGORIES as unknown as FormSelectOption[]
+                  }
+                  register={register}
+                  error={getFieldError("category")}
+                />
               </div>
             </div>
 
@@ -380,23 +374,13 @@ export default function CreateFundraiserPage() {
               />
 
               <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <select
-                  id="currency"
-                  {...register("currency")}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
-                >
-                  {CURRENCIES.map((currency) => (
-                    <option key={currency.value} value={currency.value}>
-                      {currency.label}
-                    </option>
-                  ))}
-                </select>
-                {getFieldError("currency") && (
-                  <span className="text-destructive text-xs">
-                    {getFieldError("currency")}
-                  </span>
-                )}
+                <FormSelect
+                  label="Currency"
+                  name="currency"
+                  options={CURRENCIES as unknown as FormSelectOption[]}
+                  register={register}
+                  error={getFieldError("currency")}
+                />
               </div>
             </div>
 
@@ -467,11 +451,12 @@ export default function CreateFundraiserPage() {
                   {getFieldError("coverUrl")}
                 </span>
               )}
-              {!coverImage && !form.getValues("coverUrl") && (
-                <span className="text-destructive text-xs">
-                  Cover image is required
-                </span>
-              )}
+              {!form.getValues("coverUrl") &&
+                form.formState.touchedFields.coverUrl && (
+                  <span className="text-destructive text-xs">
+                    Cover image is required
+                  </span>
+                )}
             </div>
 
             <div className="space-y-2">
