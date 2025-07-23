@@ -13,6 +13,7 @@ import {
   PublicTimelineMilestone,
   PublicTimelineMilestoneList,
 } from "@/components/fundraisers/public-timeline-milestone-list";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 interface Fundraiser {
   id: string;
@@ -386,11 +387,21 @@ export default function PublicFundraiserPage() {
                     Create your own fundraiser and start raising money for
                     causes you care about.
                   </p>
-                  <Link href="/app/fundraisers/create">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Start Fundraising
-                    </Button>
-                  </Link>
+
+                  <SignedIn>
+                    <Link href="/app/dashboard">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Start Fundraising
+                      </Button>
+                    </Link>
+                  </SignedIn>
+                  <SignedOut>
+                    <Link href="/signin">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Start Fundraising
+                      </Button>
+                    </Link>
+                  </SignedOut>
                 </div>
 
                 {/* Details */}
