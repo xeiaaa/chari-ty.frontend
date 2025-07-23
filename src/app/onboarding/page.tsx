@@ -7,9 +7,10 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FormField } from "@/components/ui/form-field";
-import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useApi, getErrorMessage } from "@/lib/api";
+import { FormSelect } from "@/components/ui/form-select";
+import type { FormSelectOption } from "@/components/ui/form-select";
 
 const ACCOUNT_TYPES = [
   { value: "individual", label: "Individual" },
@@ -89,7 +90,7 @@ export default function OnboardingPage() {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isValid },
+    formState: { errors, isValid, touchedFields, submitCount },
     trigger,
     setValue,
   } = form;
@@ -312,7 +313,11 @@ export default function OnboardingPage() {
                       register={register}
                       name="teamName"
                       required
-                      error={getFieldError("teamName")}
+                      error={
+                        "teamName" in touchedFields || submitCount > 0
+                          ? getFieldError("teamName")
+                          : undefined
+                      }
                     />
                     <FormField<OnboardingForm>
                       label="Mission"
@@ -334,7 +339,7 @@ export default function OnboardingPage() {
                         Team Members
                       </span>
                       {memberFields.map((field, index) => (
-                        <div key={field.id} className="flex gap-2 items-end">
+                        <div key={field.id} className="flex gap-2 items-start">
                           <FormField<OnboardingForm>
                             label="Name"
                             register={register}
@@ -353,29 +358,33 @@ export default function OnboardingPage() {
                               "email"
                             )}
                           />
-                          <div className="flex-1">
-                            <Label className="mb-1 block">Role</Label>
-                            <select
-                              {...register(`members.${index}.role` as const)}
-                              className="w-full rounded-md border border-input bg-background px-3 py-2"
-                            >
-                              {TEAM_MEMBER_ROLES.map((role) => (
-                                <option key={role.value} value={role.value}>
-                                  {role.label}
-                                </option>
-                              ))}
-                            </select>
+                          <div className="w-xs">
+                            <FormSelect
+                              label="Role"
+                              name={`members.${index}.role` as const}
+                              options={
+                                TEAM_MEMBER_ROLES as unknown as FormSelectOption[]
+                              }
+                              register={register}
+                              error={getArrayFieldError(
+                                "members",
+                                index,
+                                "role"
+                              )}
+                            />
                           </div>
-                          {index > 0 && (
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => removeMember(index)}
-                            >
-                              Remove
-                            </Button>
-                          )}
+                          <div className="self-center">
+                            {memberFields.length - 1 !== index && (
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeMember(index)}
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       ))}
                       <Button
@@ -399,7 +408,11 @@ export default function OnboardingPage() {
                       register={register}
                       name="organizationName"
                       required
-                      error={getFieldError("organizationName")}
+                      error={
+                        "organizationName" in touchedFields || submitCount > 0
+                          ? getFieldError("organizationName")
+                          : undefined
+                      }
                     />
                     <FormField<OnboardingForm>
                       label="EIN"
@@ -407,12 +420,16 @@ export default function OnboardingPage() {
                       name="ein"
                       required
                       placeholder="XX-XXXXXXX"
-                      error={getFieldError("ein")}
+                      error={
+                        "ein" in touchedFields || submitCount > 0
+                          ? getFieldError("ein")
+                          : undefined
+                      }
                     />
                     <div className="flex flex-col gap-2">
                       <span className="block font-medium mb-1">Documents</span>
                       {docFields.map((field, index) => (
-                        <div key={field.id} className="flex gap-2 items-end">
+                        <div key={field.id} className="flex gap-2 items-start">
                           <FormField<OnboardingForm>
                             label="Document URL"
                             register={register}
@@ -425,16 +442,18 @@ export default function OnboardingPage() {
                               "url"
                             )}
                           />
-                          {index > 0 && (
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => removeDoc(index)}
-                            >
-                              Remove
-                            </Button>
-                          )}
+                          <div className="self-center">
+                            {docFields.length - 1 !== index && (
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeDoc(index)}
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       ))}
                       <Button
