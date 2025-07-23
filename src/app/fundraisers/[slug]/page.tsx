@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DonationDialog } from "@/components/ui/donation-dialog";
-import { api } from "@/lib/utils";
+import { api, formatCategory, formatCurrency, formatDate } from "@/lib/utils";
 import { Calendar, Globe, Users, Share2, Heart } from "lucide-react";
 import {
   PublicTimelineMilestone,
@@ -71,25 +71,6 @@ export default function PublicFundraiserPage() {
       window.history.replaceState({}, "", url.toString());
     }
   }, [searchParams]);
-
-  const formatCurrency = (amount: string, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-    }).format(parseFloat(amount));
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatCategory = (category: string) => {
-    return category.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
-  };
 
   const handleShare = async () => {
     if (navigator.share) {

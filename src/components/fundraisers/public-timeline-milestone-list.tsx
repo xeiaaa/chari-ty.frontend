@@ -2,6 +2,7 @@
 
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
+import { getDateParts, formatAchievedTime } from "@/lib/utils";
 
 export interface PublicTimelineMilestone {
   id: string;
@@ -12,40 +13,17 @@ export interface PublicTimelineMilestone {
   createdAt: string;
   stepNumber: number;
   amount: string;
+  proofUrls: string[];
+  completionDetails: string;
 }
 
 interface PublicTimelineMilestoneListProps {
   milestones: PublicTimelineMilestone[];
 }
 
-function getDateParts(dateString: string) {
-  const date = new Date(dateString);
-  return {
-    month: date.toLocaleString("en-US", { month: "short" }),
-    day: date.getDate(),
-    year: date.getFullYear(),
-  };
-}
-
-function formatAchievedTime(dateString: string) {
-  return new Date(dateString).toLocaleString("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  });
-}
-
 export function PublicTimelineMilestoneList({
   milestones,
 }: PublicTimelineMilestoneListProps) {
-  if (!milestones || milestones.length === 0) {
-    return (
-      <div className="timeline-root text-center text-muted-foreground py-8">
-        No milestones yet.
-      </div>
-    );
-  }
-
   const renderMilestoneCard = (milestone: PublicTimelineMilestone) => (
     <div className="timeline-card w-full flex flex-row gap-4">
       <div className="flex mb-2">
@@ -90,6 +68,13 @@ export function PublicTimelineMilestoneList({
       </div>
     </div>
   );
+  if (!milestones || milestones.length === 0) {
+    return (
+      <div className="timeline-root text-center text-muted-foreground py-8">
+        No milestones yet.
+      </div>
+    );
+  }
 
   return (
     <div className="timeline-root relative py-8">
