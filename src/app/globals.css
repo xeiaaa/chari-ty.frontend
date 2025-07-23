@@ -259,3 +259,14 @@ a {
   border-radius: 50%;
   background: var(--timeline-dot-color);
 }
+
+.mask-thank-you {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+  -webkit-mask-image: url(/svg/ty.svg);
+  mask-image: url(/svg/ty.svg);
+  mask-repeat: no-repeat;
+  width: 100%;
+  max-width: 100%;
+  mask-size: 100%;
+  mask-position: center;
+}
