@@ -282,7 +282,7 @@ const MilestoneJourneyPage = () => {
                   <Milestone className="w-6 h-6" />
                   <h1 className="text-2xl font-bold ">Milestone Journey</h1>
                 </div>
-                <div className="flex gap-6 justify-center items-center p-2">
+                <div className="gap-6 justify-center items-center p-2 sm:flex hidden">
                   <div className="flex gap-2">
                     <span className="text-muted-foreground font-bold">
                       {
