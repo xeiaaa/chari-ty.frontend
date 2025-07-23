@@ -56,9 +56,7 @@ export default function FundraisersPage() {
 
       // For personal accounts, don't send groupId (will show user's personal fundraisers)
       // For group accounts, send the groupId to filter by that specific group
-      if (!isPersonalAccount) {
-        params.append("groupId", selectedAccount.id);
-      }
+      params.append("groupId", selectedAccount.id);
 
       const response = await api.get(`/fundraisers?${params.toString()}`);
       return response.data;
