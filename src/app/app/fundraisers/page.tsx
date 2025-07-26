@@ -98,7 +98,7 @@ export default function FundraisersPage() {
       </div>
     );
   }
-
+  console.log(data);
   return (
     <div className="max-w-7xl mx-auto">
       <div className="bg-card border border-border rounded-lg shadow-sm p-6">
@@ -246,12 +246,12 @@ export default function FundraisersPage() {
           </div>
         )}
 
-        {data?.items?.length && data.items.length > 0 && (
+        {data?.items?.length && data.items.length > 0 ? (
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Showing {data?.items?.length ?? 0} of {data?.meta?.total ?? 0}{" "}
             fundraisers
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
