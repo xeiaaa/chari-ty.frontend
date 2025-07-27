@@ -38,7 +38,7 @@ const navigation = [
     href: "/app/fundraisers",
     icon: GalleryHorizontalEnd,
   },
-  { name: "Payouts", href: "/app/payouts", icon: CreditCard },
+  { name: "Donation Payouts", href: "/app/payouts", icon: CreditCard },
   { name: "Invitations", href: "/app/invitations", icon: Mail },
   { name: "Settings", href: "/app/settings", icon: Settings },
 ];

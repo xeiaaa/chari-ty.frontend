@@ -3,7 +3,7 @@
 import { useAccount } from "@/contexts/account-context";
 import { useGroupBySlug } from "@/lib/hooks/use-group-by-slug";
 import { useApi, getErrorMessage } from "@/lib/api";
-import { useSnackbar } from "@/components/ui/snackbar";
+import { useSnackbar, Snackbar } from "@/components/ui/snackbar";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +31,7 @@ export default function PayoutsPage() {
     error,
   } = useGroupBySlug(selectedAccount.slug);
   const api = useApi();
-  const { showSnackbar } = useSnackbar();
+  const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
   const connectStripeMutation = useMutation({
     mutationFn: async () => {
@@ -49,7 +49,61 @@ export default function PayoutsPage() {
       }
     },
     onError: (error) => {
-      showSnackbar(getErrorMessage(error), "error");
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes("not allowed")) {
+        showSnackbar(
+          "You don't have permission to connect this group to Stripe.",
+          "error"
+        );
+      } else if (errorMessage.includes("not found")) {
+        showSnackbar(
+          "Group not found. Please refresh the page and try again.",
+          "error"
+        );
+      } else {
+        showSnackbar(errorMessage, "error");
+      }
+    },
+  });
+
+  const disconnectStripeMutation = useMutation({
+    mutationFn: async () => {
+      if (!group?.id) throw new Error("Group not loaded");
+      const { data } = await api.post("/payments/stripe/disconnect", {
+        groupId: group.id,
+      });
+      return data;
+    },
+    onSuccess: (data) => {
+      showSnackbar(
+        data.message || "Stripe account disconnected successfully",
+        "success"
+      );
+      // Refetch the group data to update the UI
+      window.location.reload();
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes("published fundraisers")) {
+        showSnackbar(
+          "Cannot disconnect while you have active fundraisers. Please unpublish all fundraisers first.",
+          "error"
+        );
+      } else if (errorMessage.includes("not allowed")) {
+        showSnackbar(
+          "You don't have permission to disconnect this group from Stripe.",
+          "error"
+        );
+      } else if (errorMessage.includes("not connected")) {
+        showSnackbar("This group is not connected to Stripe.", "error");
+      } else if (errorMessage.includes("not found")) {
+        showSnackbar(
+          "Group not found. Please refresh the page and try again.",
+          "error"
+        );
+      } else {
+        showSnackbar(errorMessage, "error");
+      }
     },
   });
 
@@ -57,9 +111,8 @@ export default function PayoutsPage() {
     connectStripeMutation.mutate();
   };
 
-  const handleDisconnectStripe = async () => {
-    // TODO: Implement Stripe disconnect
-    console.log("Disconnect from Stripe");
+  const handleDisconnectStripe = () => {
+    disconnectStripeMutation.mutate();
   };
 
   if (isLoading) {
@@ -88,9 +141,10 @@ export default function PayoutsPage() {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Payouts</h1>
+          <h1 className="text-3xl font-bold mb-1">Donation Payouts</h1>
           <p className="text-muted-foreground">
-            Manage your Stripe Connect account for receiving payments
+            Connect your Stripe account to receive donations from your
+            fundraisers
           </p>
         </div>
         <div className="space-y-6">
@@ -98,7 +152,11 @@ export default function PayoutsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center space-x-2 text-destructive">
                 <AlertCircle className="h-5 w-5" />
-                <span>Failed to load group information. Please try again.</span>
+                <span>
+                  {getErrorMessage(error).includes("not found")
+                    ? "Group not found. Please check your account settings."
+                    : "Failed to load group information. Please try again."}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -112,9 +170,9 @@ export default function PayoutsPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Payouts</h1>
+        <h1 className="text-3xl font-bold mb-1">Donation Payouts</h1>
         <p className="text-muted-foreground">
-          Manage your Stripe Connect account for receiving payments
+          Connect your Stripe account to receive donations from your fundraisers
         </p>
       </div>
 
@@ -129,7 +187,7 @@ export default function PayoutsPage() {
               </Badge>
             </div>
             <CardDescription>
-              Connect your Stripe account to receive payments from your
+              Connect your Stripe account to receive donations from your
               fundraisers
             </CardDescription>
           </CardHeader>
@@ -140,7 +198,7 @@ export default function PayoutsPage() {
                   <CheckCircle className="h-5 w-5" />
                   <span>
                     Your Stripe account is connected and ready to receive
-                    payments
+                    donations
                   </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -149,10 +207,15 @@ export default function PayoutsPage() {
                 <Button
                   variant="outline"
                   onClick={handleDisconnectStripe}
+                  disabled={disconnectStripeMutation.isPending}
                   className="flex items-center space-x-2"
                 >
                   <Unlink className="h-4 w-4" />
-                  <span>Disconnect Stripe</span>
+                  <span>
+                    {disconnectStripeMutation.isPending
+                      ? "Disconnecting..."
+                      : "Disconnect Stripe"}
+                  </span>
                 </Button>
               </div>
             ) : (
@@ -160,11 +223,11 @@ export default function PayoutsPage() {
                 <div className="flex items-center space-x-2 text-amber-600">
                   <AlertCircle className="h-5 w-5" />
                   <span>
-                    Connect your Stripe account to start receiving payments
+                    Connect your Stripe account to start receiving donations
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  You need to connect your Stripe account to receive payments
+                  You need to connect your Stripe account to receive donations
                   from your fundraisers. This will allow you to receive funds
                   directly to your bank account.
                 </p>
@@ -183,20 +246,28 @@ export default function PayoutsPage() {
         {isConnected && (
           <Card>
             <CardHeader>
-              <CardTitle>Payment Information</CardTitle>
+              <CardTitle>Donation Information</CardTitle>
               <CardDescription>
-                View your payment history and manage payouts
+                View your donation history and manage payouts
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Payment dashboard and payout management features will be
+                Donation dashboard and payout management features will be
                 available here.
               </p>
             </CardContent>
           </Card>
         )}
       </div>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        onClose={hideSnackbar}
+        message={snackbar.message}
+        type={snackbar.type}
+      />
     </div>
   );
 }
