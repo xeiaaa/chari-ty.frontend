@@ -629,11 +629,14 @@ export default function SettingsPage() {
 
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">Government ID</label>
+                  <label className="text-sm font-medium">
+                    Verification Documents
+                  </label>
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
                     <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground mb-2">
-                      Drag and drop your government ID here, or click to browse
+                      Drag and drop your verification documents here, or click
+                      to browse
                     </p>
                     <Button variant="outline" size="sm">
                       Choose File
@@ -645,27 +648,12 @@ export default function SettingsPage() {
                   <>
                     <div className="grid gap-2">
                       <label className="text-sm font-medium">
-                        501(c)(3) Determination Letter
+                        Additional Verification Documents
                       </label>
                       <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
                         <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground mb-2">
-                          Upload your 501(c)(3) determination letter
-                        </p>
-                        <Button variant="outline" size="sm">
-                          Choose File
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium">
-                        Organization Documents
-                      </label>
-                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Upload additional organization documents
+                          Upload additional verification documents
                         </p>
                         <Button variant="outline" size="sm">
                           Choose File
