@@ -52,7 +52,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <Skeleton className="h-10 w-2/3 mb-4" />
           <Skeleton className="h-6 w-1/2 mb-6" />
@@ -78,7 +78,7 @@ export default function DashboardPage() {
   // Show message if no selected account
   if (!selectedAccount) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">
             Welcome, {user.firstName}!
@@ -93,7 +93,7 @@ export default function DashboardPage() {
 
   if (dashboardError) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">
             Welcome, {user.firstName}!
@@ -109,7 +109,7 @@ export default function DashboardPage() {
 
   if (!dashboardData) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">
             Welcome, {user.firstName}!
@@ -123,7 +123,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-1">Welcome, {user.firstName}!</h1>
         <p className="text-muted-foreground">
@@ -139,7 +139,7 @@ export default function DashboardPage() {
           Fundraising Overview
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
+          <Card className="justify-between">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Active Fundraisers
@@ -155,7 +155,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="justify-between">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Raised
@@ -171,7 +171,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="justify-between">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Goal Completion Rate
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="justify-between">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Avg Donation per Fundraiser
