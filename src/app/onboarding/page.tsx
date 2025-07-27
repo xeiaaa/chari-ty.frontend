@@ -34,7 +34,6 @@ const teamMemberSchema = z.object({
 
 const baseSchema = z.object({
   accountType: z.enum(["individual", "team", "nonprofit"]),
-  bio: z.string().max(500).optional(),
   avatarUrl: z
     .string()
     .refine((val) => !val || z.string().url().safeParse(val).success, {
@@ -88,7 +87,6 @@ interface OnboardingPayload {
   accountType: string;
   name?: string;
   ein?: string;
-  bio?: string;
   avatarUrl?: string;
   mission?: string;
   website?: string;
@@ -96,7 +94,6 @@ interface OnboardingPayload {
 }
 
 const defaultValues: Partial<OnboardingForm> = {
-  bio: "",
   avatarUrl: "",
   mission: "",
   website: "",
@@ -316,7 +313,6 @@ export default function OnboardingPage() {
       // Filter out empty optional fields
       const payload: OnboardingPayload = {
         accountType: data.accountType,
-        ...(data.bio && data.bio.trim() && { bio: data.bio.trim() }),
         ...(avatarUrl && avatarUrl.trim() && { avatarUrl: avatarUrl.trim() }),
         ...(data.mission &&
           data.mission.trim() && { mission: data.mission.trim() }),
@@ -358,13 +354,7 @@ export default function OnboardingPage() {
     if (!errors || !accountType) return undefined;
 
     // Only show errors for fields relevant to the current account type
-    const commonFields = [
-      "bio",
-      "avatarUrl",
-      "mission",
-      "website",
-      "documentsUrls",
-    ];
+    const commonFields = ["avatarUrl", "mission", "website", "documentsUrls"];
     const teamFields = [...commonFields, "name", "members"];
     const nonprofitFields = [...commonFields, "name", "ein", "members"];
 
@@ -559,14 +549,6 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Common fields */}
-                <FormField<OnboardingForm>
-                  label="Bio"
-                  register={register}
-                  textarea
-                  name="bio"
-                  placeholder="Tell us about yourself or your group"
-                  error={getFieldError("bio")}
-                />
                 <FormField<OnboardingForm>
                   label="Mission"
                   register={register}

@@ -4,18 +4,16 @@ import { useApi } from "../api";
 export interface GroupDetails {
   id: string;
   name: string;
-  type: string;
   slug: string;
-  stripeId?: string;
+  description?: string;
+  type: "individual" | "team" | "nonprofit";
+  avatarUrl?: string;
+  website?: string;
+  ein?: string;
+  documentsUrls?: string[];
+  verified: boolean;
   createdAt: string;
   updatedAt: string;
-  members: Array<{
-    id: string;
-    userId: string;
-    role: string;
-    status: string;
-    createdAt: string;
-  }>;
 }
 
 export function useGroupBySlug(slug: string, enabled: boolean = true) {
