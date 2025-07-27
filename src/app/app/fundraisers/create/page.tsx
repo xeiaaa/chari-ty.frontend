@@ -47,23 +47,24 @@ export default function CreateFundraiserPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+      <div className="mb-6">
+        <div className="flex items-center gap-4">
           <Link href="/app/fundraisers">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4" />
               Back to Fundraisers
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold">Create Fundraiser</h1>
-            <p className="text-muted-foreground">
-              Create a new fundraiser to start raising money for your cause
-            </p>
-          </div>
         </div>
+        <div className="mt-4">
+          <h1 className="text-3xl font-bold mb-1">Create Fundraiser</h1>
+          <p className="text-muted-foreground">
+            Create a new fundraiser to start raising money for your cause
+          </p>
+        </div>
+      </div>
 
+      <div className="space-y-6">
         <FundraiserForm
           defaultValues={{}}
           onSubmit={(data) => createFundraiserMutation.mutate(data)}

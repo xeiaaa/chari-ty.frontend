@@ -114,11 +114,11 @@ export default function HomeLayout({
           {/* Sidebar */}
           <div
             className={cn(
-              "fixed inset-y-16 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+              "fixed top-16 bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col",
               isSidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
-            <div className="flex h-16 items-center px-6">
+            <div className="flex h-16 items-center px-6 flex-shrink-0">
               <Link
                 href="/"
                 className="text-xl font-bold hover:opacity-80 transition-opacity"
@@ -126,7 +126,7 @@ export default function HomeLayout({
                 Chari-ty
               </Link>
             </div>
-            <nav className="flex flex-col gap-1 p-4">
+            <nav className="flex flex-col gap-1 p-4 flex-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (

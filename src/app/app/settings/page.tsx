@@ -245,7 +245,11 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+        <TabsList
+          className={`grid w-full ${
+            shouldShowTeamMembersTab ? "grid-cols-3" : "grid-cols-2"
+          }`}
+        >
           <TabsTrigger value="account" className="flex items-center gap-2">
             {getAccountTypeIcon()}
             {getAccountTypeLabel()}

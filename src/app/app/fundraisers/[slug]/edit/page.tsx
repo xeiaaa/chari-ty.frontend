@@ -82,12 +82,84 @@ export default function EditFundraiserPage() {
     },
   });
 
-  if (fetchError)
+  if (fetchError) {
     return (
-      <p className="text-center text-red-500">Failed to load fundraiser.</p>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
+            <Link href={`/app/fundraisers/${slug}`}>
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Fundraiser
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+          <div className="text-center py-8">
+            <p className="text-destructive text-lg">
+              Failed to load fundraiser
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {fetchError instanceof Error
+                ? fetchError.message
+                : "Unknown error"}
+            </p>
+          </div>
+        </div>
+      </div>
     );
-  if (isLoadingFundraiser) return <p className="text-center">Loading...</p>;
-  if (!fundraiser) return <p className="text-center">Fundraiser not found.</p>;
+  }
+
+  if (isLoadingFundraiser) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
+            <Link href={`/app/fundraisers/${slug}`}>
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Fundraiser
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Loading fundraiser...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!fundraiser) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
+            <Link href={`/app/fundraisers/${slug}`}>
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Fundraiser
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+          <div className="text-center py-8">
+            <p className="text-lg">Fundraiser not found</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              The fundraiser you&apos;re looking for doesn&apos;t exist or you
+              don&apos;t have access to it.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Default values for FundraiserForm
   const defaultValues: FundraiserFormData = {
@@ -107,32 +179,37 @@ export default function EditFundraiserPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 mb-6">
+      <div className="mb-6">
+        <div className="flex items-center gap-4">
           <Link href={`/app/fundraisers/${slug}`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4" />
               Back to Fundraiser
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Edit {fundraiser.title}</h1>
+        </div>
+        <div className="mt-4">
+          <h1 className="text-3xl font-bold mb-1">Edit {fundraiser.title}</h1>
           <p className="text-muted-foreground">
             Update your fundraiser information
           </p>
         </div>
+      </div>
 
+      <div className="space-y-6">
         {/* FundraiserForm */}
-        <FundraiserForm
-          defaultValues={defaultValues}
-          onSubmit={(data) => updateFundraiserMutation.mutate(data)}
-          submitLabel="Update Fundraiser"
-          loading={updateFundraiserMutation.isPending}
-          error={error}
-        />
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+          <FundraiserForm
+            defaultValues={defaultValues}
+            onSubmit={(data) => updateFundraiserMutation.mutate(data)}
+            submitLabel="Update Fundraiser"
+            loading={updateFundraiserMutation.isPending}
+            error={error}
+          />
+        </div>
 
         {/* Milestones Section */}
-        <div className="mt-12">
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           {editingMilestone ? (
             <EditMilestoneForm
               slug={slug}
@@ -159,7 +236,7 @@ export default function EditFundraiserPage() {
         </div>
 
         {/* Links Section */}
-        <div className="mt-12">
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           {editingLink ? (
             <EditLinkForm
               fundraiserId={fundraiser.id}

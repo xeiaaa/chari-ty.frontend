@@ -179,8 +179,8 @@ export default function FundraiserDetailPage() {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <div className="flex items-center gap-4 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
             <Link href="/app/fundraisers">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4" />
@@ -188,6 +188,8 @@ export default function FundraiserDetailPage() {
               </Button>
             </Link>
           </div>
+        </div>
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           <div className="text-center py-8">
             <p className="text-destructive text-lg">
               Failed to load fundraiser
@@ -204,8 +206,8 @@ export default function FundraiserDetailPage() {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <div className="flex items-center gap-4 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
             <Link href="/app/fundraisers">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4" />
@@ -213,13 +215,13 @@ export default function FundraiserDetailPage() {
               </Button>
             </Link>
           </div>
-          <div className="space-y-6">
-            <Skeleton className="h-64 w-full" />
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-3/4" />
-              <Skeleton className="h-6 w-1/2" />
-              <Skeleton className="h-32 w-full" />
-            </div>
+        </div>
+        <div className="space-y-6">
+          <Skeleton className="h-64 w-full" />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-32 w-full" />
           </div>
         </div>
       </div>
@@ -229,8 +231,8 @@ export default function FundraiserDetailPage() {
   if (!fundraiser) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <div className="flex items-center gap-4 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
             <Link href="/app/fundraisers">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4" />
@@ -238,6 +240,8 @@ export default function FundraiserDetailPage() {
               </Button>
             </Link>
           </div>
+        </div>
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           <div className="text-center py-8">
             <p className="text-lg">Fundraiser not found</p>
             <p className="text-sm text-muted-foreground mt-2">
@@ -252,128 +256,126 @@ export default function FundraiserDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="p-6 pb-4">
-          <div className="flex items-center gap-4 mb-6">
-            <Link href="/app/fundraisers">
+      <div className="mb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/app/fundraisers">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Fundraisers
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2 ml-auto">
+            <Link href={`/fundraisers/${fundraiser.slug}`}>
               <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Fundraisers
+                View Public Page
               </Button>
             </Link>
-            <div className="flex items-center gap-2 ml-auto">
-              <Link href={`/fundraisers/${fundraiser.slug}`}>
-                <Button variant="ghost" size="sm">
-                  View Public Page
-                </Button>
-              </Link>
-              <Link href={`/app/fundraisers/${slug}/edit`}>
-                <Button variant="outline" size="sm">
-                  Edit
-                </Button>
-              </Link>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setDeleteDialogOpen(true);
-                        setDeleteInput("");
-                        setDeleteError(null);
-                      }}
-                      disabled={
-                        fundraiser.status === "published" ||
-                        (fundraiser.progress?.donationCount ?? 0) > 0
-                      }
-                      style={{ pointerEvents: "auto" }}
-                      className={
-                        fundraiser.status === "published" ||
-                        (fundraiser.progress?.donationCount ?? 0) > 0
-                          ? "cursor-not-allowed"
-                          : ""
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                {((fundraiser.progress?.donationCount ?? 0) > 0 ||
-                  fundraiser.status === "published") && (
-                  <TooltipContent side="top">
-                    {fundraiser.status === "published"
-                      ? "You can only delete an unpublished fundraiser."
-                      : "You cannot delete a fundraiser that has received donations."}
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </div>
-          </div>
-        </div>
-
-        {/* Cover Image */}
-        <div className="h-64 bg-muted relative">
-          <img
-            src={fundraiser.coverUrl}
-            alt={fundraiser.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute bottom-4 left-6 right-6">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-black/70 text-white px-2 py-1 rounded text-xs">
-                {formatCategory(fundraiser.category)}
-              </span>
-              {!fundraiser.isPublic && (
-                <span className="bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                  <Lock className="h-3 w-3" />
-                  Private
+            <Link href={`/app/fundraisers/${slug}/edit`}>
+              <Button variant="outline" size="sm">
+                Edit
+              </Button>
+            </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setDeleteDialogOpen(true);
+                      setDeleteInput("");
+                      setDeleteError(null);
+                    }}
+                    disabled={
+                      fundraiser.status === "published" ||
+                      (fundraiser.progress?.donationCount ?? 0) > 0
+                    }
+                    style={{ pointerEvents: "auto" }}
+                    className={
+                      fundraiser.status === "published" ||
+                      (fundraiser.progress?.donationCount ?? 0) > 0
+                        ? "cursor-not-allowed"
+                        : ""
+                    }
+                  >
+                    Delete
+                  </Button>
                 </span>
+              </TooltipTrigger>
+              {((fundraiser.progress?.donationCount ?? 0) > 0 ||
+                fundraiser.status === "published") && (
+                <TooltipContent side="top">
+                  {fundraiser.status === "published"
+                    ? "You can only delete an unpublished fundraiser."
+                    : "You cannot delete a fundraiser that has received donations."}
+                </TooltipContent>
               )}
-              <span className="bg-black/70 text-white px-2 py-1 rounded text-xs capitalize">
-                {fundraiser.status}
-              </span>
+            </Tooltip>
+          </div>
+        </div>
+        <div className="mt-4">
+          <h1 className="text-3xl font-bold mb-1">{fundraiser.title}</h1>
+          <p className="text-muted-foreground">{fundraiser.summary}</p>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Cover Image */}
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="h-64 bg-muted relative">
+            <img
+              src={fundraiser.coverUrl}
+              alt={fundraiser.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute bottom-4 left-6 right-6">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  {formatCategory(fundraiser.category)}
+                </span>
+                {!fundraiser.isPublic && (
+                  <span className="bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    Private
+                  </span>
+                )}
+                <span className="bg-black/70 text-white px-2 py-1 rounded text-xs capitalize">
+                  {fundraiser.status}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">{fundraiser.title}</h1>
-                <p className="text-lg text-muted-foreground mb-4">
-                  {fundraiser.summary}
-                </p>
-
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Content */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Created {formatDate(fundraiser.createdAt)}</span>
+                </div>
+                {fundraiser.endDate && (
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>Created {formatDate(fundraiser.createdAt)}</span>
+                    <span>Ends {formatDate(fundraiser.endDate)}</span>
                   </div>
-                  {fundraiser.endDate && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Ends {formatDate(fundraiser.endDate)}</span>
-                    </div>
+                )}
+                <div className="flex items-center gap-1">
+                  {fundraiser.ownerType === "group" ? (
+                    <Users className="h-4 w-4" />
+                  ) : (
+                    <Users className="h-4 w-4" />
                   )}
-                  <div className="flex items-center gap-1">
-                    {fundraiser.ownerType === "group" ? (
-                      <Users className="h-4 w-4" />
-                    ) : (
-                      <Users className="h-4 w-4" />
-                    )}
-                    <span>
-                      {fundraiser.ownerType === "group" ? "Group" : "Personal"}
-                    </span>
-                  </div>
+                  <span>
+                    {fundraiser.ownerType === "group" ? "Group" : "Personal"}
+                  </span>
                 </div>
               </div>
 
@@ -385,133 +387,127 @@ export default function FundraiserDetailPage() {
                   </p>
                 </div>
               </div>
-
-              {/* Milestones */}
-              <div>
-                {editingMilestone ? (
-                  <EditMilestoneForm
-                    slug={slug}
-                    milestone={editingMilestone}
-                    onSuccess={() => {
-                      showSnackbar(
-                        "Milestone updated successfully!",
-                        "success"
-                      );
-                      setEditingMilestone(null);
-                    }}
-                    onError={(error) => showSnackbar(error, "error")}
-                    onCancel={() => setEditingMilestone(null)}
-                  />
-                ) : (
-                  <MilestoneForm
-                    fundraiserId={fundraiser.id}
-                    onSuccess={() =>
-                      showSnackbar("Milestone created successfully!", "success")
-                    }
-                    onError={(error) => showSnackbar(error, "error")}
-                  />
-                )}
-                <MilestoneList
-                  fundraiserId={fundraiser.id}
-                  currency={fundraiser.currency}
-                  onEditMilestone={setEditingMilestone}
-                />
-              </div>
-
-              {/* Links */}
-              <div className="mt-12">
-                {editingLink ? (
-                  <EditLinkForm
-                    fundraiserId={fundraiser.id}
-                    link={editingLink}
-                    onSuccess={() => {
-                      showSnackbar("Link updated successfully!", "success");
-                      setEditingLink(null);
-                    }}
-                    onError={(error) => showSnackbar(error, "error")}
-                    onCancel={() => setEditingLink(null)}
-                  />
-                ) : (
-                  <LinkForm
-                    fundraiserId={fundraiser.id}
-                    onSuccess={() =>
-                      showSnackbar("Link created successfully!", "success")
-                    }
-                    onError={(error) => showSnackbar(error, "error")}
-                  />
-                )}
-                <LinkList onEditLink={setEditingLink} fundraiser={fundraiser} />
-              </div>
-
-              {/* Gallery */}
-              {fundraiser.galleryUrls.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">Gallery</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {fundraiser.galleryUrls.map((url, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square bg-muted rounded-lg overflow-hidden"
-                      >
-                        <img
-                          src={url}
-                          alt={`Gallery image ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Goal Progress */}
-              <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <h3 className="font-semibold mb-4">Fundraising Goal</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Goal</span>
-                    <span className="font-semibold">
-                      {formatCurrency(
-                        fundraiser.goalAmount,
-                        fundraiser.currency
-                      )}
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-3">
+            {/* Milestones */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              {editingMilestone ? (
+                <EditMilestoneForm
+                  slug={slug}
+                  milestone={editingMilestone}
+                  onSuccess={() => {
+                    showSnackbar("Milestone updated successfully!", "success");
+                    setEditingMilestone(null);
+                  }}
+                  onError={(error) => showSnackbar(error, "error")}
+                  onCancel={() => setEditingMilestone(null)}
+                />
+              ) : (
+                <MilestoneForm
+                  fundraiserId={fundraiser.id}
+                  onSuccess={() =>
+                    showSnackbar("Milestone created successfully!", "success")
+                  }
+                  onError={(error) => showSnackbar(error, "error")}
+                />
+              )}
+              <MilestoneList
+                fundraiserId={fundraiser.id}
+                currency={fundraiser.currency}
+                onEditMilestone={setEditingMilestone}
+              />
+            </div>
+
+            {/* Links */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              {editingLink ? (
+                <EditLinkForm
+                  fundraiserId={fundraiser.id}
+                  link={editingLink}
+                  onSuccess={() => {
+                    showSnackbar("Link updated successfully!", "success");
+                    setEditingLink(null);
+                  }}
+                  onError={(error) => showSnackbar(error, "error")}
+                  onCancel={() => setEditingLink(null)}
+                />
+              ) : (
+                <LinkForm
+                  fundraiserId={fundraiser.id}
+                  onSuccess={() =>
+                    showSnackbar("Link created successfully!", "success")
+                  }
+                  onError={(error) => showSnackbar(error, "error")}
+                />
+              )}
+              <LinkList onEditLink={setEditingLink} fundraiser={fundraiser} />
+            </div>
+
+            {/* Gallery */}
+            {fundraiser.galleryUrls.length > 0 && (
+              <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4">Gallery</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {fundraiser.galleryUrls.map((url, index) => (
                     <div
-                      className="bg-primary h-3 rounded-full"
-                      style={{
-                        width: `${
-                          fundraiser.progress?.progressPercentage || 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>
-                      {formatCurrency(
-                        fundraiser.progress?.totalRaised || "0",
-                        fundraiser.currency
-                      )}{" "}
-                      raised
-                    </span>
-                    <span>
-                      {Math.round(
-                        fundraiser.progress?.progressPercentage || 0
-                      ).toString()}
-                      % of goal
-                    </span>
-                  </div>
+                      key={index}
+                      className="aspect-square bg-muted rounded-lg overflow-hidden"
+                    >
+                      <img
+                        src={url}
+                        alt={`Gallery image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Actions */}
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Goal Progress */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <h3 className="font-semibold mb-4">Fundraising Goal</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Goal</span>
+                  <span className="font-semibold">
+                    {formatCurrency(fundraiser.goalAmount, fundraiser.currency)}
+                  </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-3">
+                  <div
+                    className="bg-primary h-3 rounded-full"
+                    style={{
+                      width: `${fundraiser.progress?.progressPercentage || 0}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <span>
+                    {formatCurrency(
+                      fundraiser.progress?.totalRaised || "0",
+                      fundraiser.currency
+                    )}{" "}
+                    raised
+                  </span>
+                  <span>
+                    {Math.round(
+                      fundraiser.progress?.progressPercentage || 0
+                    ).toString()}
+                    % of goal
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
               <div className="space-y-3">
                 <Button
                   className="w-full"
@@ -526,41 +522,41 @@ export default function FundraiserDetailPage() {
                     : "Publish"}
                 </Button>
               </div>
+            </div>
 
-              {/* Details */}
-              <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <h3 className="font-semibold mb-4">Details</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status</span>
-                    <span className="capitalize">{fundraiser.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Visibility</span>
-                    <div className="flex items-center gap-1">
-                      {fundraiser.isPublic ? (
-                        <Globe className="h-3 w-3" />
-                      ) : (
-                        <Lock className="h-3 w-3" />
-                      )}
-                      <span>{fundraiser.isPublic ? "Public" : "Private"}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Category</span>
-                    <span>{formatCategory(fundraiser.category)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Created</span>
-                    <span>{formatDate(fundraiser.createdAt)}</span>
-                  </div>
-                  {fundraiser.endDate && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">End Date</span>
-                      <span>{formatDate(fundraiser.endDate)}</span>
-                    </div>
-                  )}
+            {/* Details */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <h3 className="font-semibold mb-4">Details</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <span className="capitalize">{fundraiser.status}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Visibility</span>
+                  <div className="flex items-center gap-1">
+                    {fundraiser.isPublic ? (
+                      <Globe className="h-3 w-3" />
+                    ) : (
+                      <Lock className="h-3 w-3" />
+                    )}
+                    <span>{fundraiser.isPublic ? "Public" : "Private"}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Category</span>
+                  <span>{formatCategory(fundraiser.category)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Created</span>
+                  <span>{formatDate(fundraiser.createdAt)}</span>
+                </div>
+                {fundraiser.endDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">End Date</span>
+                    <span>{formatDate(fundraiser.endDate)}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

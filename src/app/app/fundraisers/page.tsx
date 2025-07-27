@@ -80,14 +80,14 @@ export default function FundraisersPage() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-1">Fundraisers</h1>
+          <p className="text-muted-foreground">
+            Manage your fundraising campaigns
+          </p>
+        </div>
         <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Fundraisers</h1>
-            <Link href="/app/fundraisers/create">
-              <Button>Create Fundraiser</Button>
-            </Link>
-          </div>
           <div className="text-center py-8">
             <p className="text-destructive">Failed to load fundraisers</p>
             <p className="text-sm text-muted-foreground mt-2">
@@ -100,12 +100,12 @@ export default function FundraisersPage() {
   }
   console.log(data);
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Fundraisers</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-3xl font-bold mb-1">Fundraisers</h1>
+            <p className="text-muted-foreground">
               {isPersonalAccount
                 ? "Your personal fundraisers"
                 : `${selectedAccount.name} fundraisers`}
@@ -115,7 +115,9 @@ export default function FundraisersPage() {
             <Button>Create Fundraiser</Button>
           </Link>
         </div>
+      </div>
 
+      <div className="space-y-6">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -138,19 +140,21 @@ export default function FundraisersPage() {
             ))}
           </div>
         ) : !data?.items?.length ? (
-          <div className="text-center py-12">
-            <div className="bg-muted/50 border border-border rounded-lg p-8">
-              <h3 className="text-lg font-semibold mb-2">
-                No fundraisers found
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {isPersonalAccount
-                  ? "You haven't created any fundraisers yet."
-                  : `${selectedAccount.name} doesn't have any fundraisers yet.`}
-              </p>
-              <Link href="/app/fundraisers/create">
-                <Button>Create Your First Fundraiser</Button>
-              </Link>
+          <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+            <div className="text-center py-12">
+              <div className="bg-muted/50 border border-border rounded-lg p-8">
+                <h3 className="text-lg font-semibold mb-2">
+                  No fundraisers found
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {isPersonalAccount
+                    ? "You haven't created any fundraisers yet."
+                    : `${selectedAccount.name} doesn't have any fundraisers yet.`}
+                </p>
+                <Link href="/app/fundraisers/create">
+                  <Button>Create Your First Fundraiser</Button>
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
@@ -247,7 +251,7 @@ export default function FundraisersPage() {
         )}
 
         {data?.items?.length && data.items.length > 0 ? (
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="text-center text-sm text-muted-foreground">
             Showing {data?.items?.length ?? 0} of {data?.meta?.total ?? 0}{" "}
             fundraisers
           </div>

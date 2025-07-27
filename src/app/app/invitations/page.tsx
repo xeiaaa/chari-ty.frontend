@@ -44,11 +44,14 @@ export default function InvitationsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Invitations</h1>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-1">Invitations</h1>
+          <p className="text-muted-foreground">
+            Manage your pending invitations
+          </p>
         </div>
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardHeader>
@@ -67,30 +70,36 @@ export default function InvitationsPage() {
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Invitations</h1>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-1">Invitations</h1>
+          <p className="text-muted-foreground">
+            Manage your pending invitations
+          </p>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground">
-              Failed to load invitations. Please try again later.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">
+                Failed to load invitations. Please try again later.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Invitations</h1>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-1">Invitations</h1>
+        <p className="text-muted-foreground">Manage your pending invitations</p>
       </div>
 
-      {invitations && invitations.length > 0 ? (
-        <div className="grid gap-4">
-          {invitations.map((invitation) => (
+      <div className="space-y-4">
+        {invitations && invitations.length > 0 ? (
+          invitations.map((invitation) => (
             <Card key={invitation.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -126,17 +135,17 @@ export default function InvitationsPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground text-center">
-              You don&apos;t have any pending invitations.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+          ))
+        ) : (
+          <Card className="min-h-[400px] flex items-center justify-center">
+            <CardContent className="text-center">
+              <p className="text-muted-foreground text-lg">
+                You don&apos;t have any pending invitations.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
