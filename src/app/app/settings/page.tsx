@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
 import { Upload, Users, Shield, User, Building2, Loader2 } from "lucide-react";
+import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialog";
 
 export default function SettingsPage() {
   const { selectedAccount } = useAccount();
@@ -27,6 +28,7 @@ export default function SettingsPage() {
     website: "",
     ein: "",
   });
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   // Fetch group details
   const {
@@ -335,15 +337,27 @@ export default function SettingsPage() {
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5" />
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
+                          {member.user?.avatarUrl ? (
+                            <img
+                              src={member.user.avatarUrl}
+                              alt={`${member.user.firstName} ${member.user.lastName}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="h-5 w-5" />
+                          )}
                         </div>
                         <div>
                           <p className="font-medium">
-                            {member.invitedName || "Unknown User"}
+                            {member.user
+                              ? `${member.user.firstName} ${member.user.lastName}`
+                              : member.invitedName || "Unknown User"}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {member.invitedEmail || "No email provided"}
+                            {member.user?.email ||
+                              member.invitedEmail ||
+                              "No email provided"}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Joined:{" "}
@@ -395,7 +409,10 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 )}
-                <Button className="w-full">
+                <Button
+                  className="w-full"
+                  onClick={() => setIsInviteDialogOpen(true)}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Invite New Member
                 </Button>
@@ -483,6 +500,11 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <InviteMemberDialog
+        open={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
+      />
     </div>
   );
 }

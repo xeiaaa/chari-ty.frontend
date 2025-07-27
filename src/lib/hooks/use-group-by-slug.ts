@@ -1,6 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "../api";
 
+export interface GroupMemberUser {
+  id: string;
+  clerkId: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  accountType: "individual" | "team" | "nonprofit";
+  setupComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface GroupMember {
   id: string;
   userId: string | null;
@@ -13,6 +28,7 @@ export interface GroupMember {
   joinedAt: string;
   createdAt: string;
   updatedAt: string;
+  user: GroupMemberUser | null;
 }
 
 export interface GroupDetails {
