@@ -328,25 +328,73 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5" />
+                {groupDetails?.members && groupDetails.members.length > 0 ? (
+                  groupDetails.members.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {member.invitedName || "Unknown User"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {member.invitedEmail || "No email provided"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Joined:{" "}
+                            {new Date(member.joinedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            member.role === "owner"
+                              ? "default"
+                              : member.role === "admin"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {member.role.charAt(0).toUpperCase() +
+                            member.role.slice(1)}
+                        </Badge>
+                        <Badge
+                          variant={
+                            member.status === "active"
+                              ? "default"
+                              : member.status === "invited"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {member.status.charAt(0).toUpperCase() +
+                            member.status.slice(1)}
+                        </Badge>
+                        {member.role !== "owner" && (
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">John Doe</p>
-                      <p className="text-sm text-muted-foreground">
-                        john@example.com
-                      </p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground mb-2">
+                      No members found
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Start by inviting team members to collaborate
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">Owner</Badge>
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
-                  </div>
-                </div>
+                )}
                 <Button className="w-full">
                   <Users className="h-4 w-4 mr-2" />
                   Invite New Member
