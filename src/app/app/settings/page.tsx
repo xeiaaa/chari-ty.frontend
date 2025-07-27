@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useAccount } from "@/contexts/account-context";
 import { useGroupBySlug } from "@/lib/hooks/use-group-by-slug";
 import { useUpdateGroup, UpdateGroupData } from "@/lib/hooks/use-update-group";
+import { useUpdateMemberRole } from "@/lib/hooks/use-update-member-role";
+import { useRemoveMember } from "@/lib/hooks/use-remove-member";
+import { useUser } from "@/lib/hooks/use-user";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Card,
@@ -17,11 +20,31 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
-import { Upload, Users, Shield, User, Building2, Loader2 } from "lucide-react";
+import {
+  Upload,
+  Users,
+  Shield,
+  User,
+  Building2,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialog";
+import { RemoveMemberDialog } from "@/components/ui/remove-member-dialog";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const { selectedAccount } = useAccount();
+  const { user: currentUser } = useUser();
+
+  // Get current user's role from group details
+  const getCurrentUserRole = () => {
+    if (!groupDetails || !currentUser) return null;
+    const currentUserMember = groupDetails.members.find(
+      (member) => member.user?.id === currentUser.id
+    );
+    return currentUserMember?.role || null;
+  };
   const [formData, setFormData] = useState({
     name: "",
     mission: "",
@@ -29,6 +52,15 @@ export default function SettingsPage() {
     ein: "",
   });
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [removeMemberDialog, setRemoveMemberDialog] = useState<{
+    open: boolean;
+    memberId: string;
+    memberName: string;
+  }>({
+    open: false,
+    memberId: "",
+    memberName: "",
+  });
 
   // Fetch group details
   const {
@@ -43,6 +75,14 @@ export default function SettingsPage() {
     isPending: isUpdating,
     error: updateError,
   } = useUpdateGroup();
+
+  // Update member role mutation
+  const { mutate: updateMemberRole, isPending: isUpdatingRole } =
+    useUpdateMemberRole();
+
+  // Remove member mutation
+  const { mutate: removeMember, isPending: isRemovingMember } =
+    useRemoveMember();
 
   // Update form data when group details are loaded
   useEffect(() => {
@@ -83,6 +123,56 @@ export default function SettingsPage() {
       slug: selectedAccount.slug,
       data: updateData,
     });
+  };
+
+  const handleUpdateMemberRole = (memberId: string, newRole: string) => {
+    if (!groupDetails) return;
+
+    updateMemberRole(
+      {
+        groupId: groupDetails.id,
+        memberId,
+        role: newRole,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Member role updated successfully");
+        },
+        onError: (error) => {
+          toast.error("Failed to update member role");
+          console.error("Error updating member role:", error);
+        },
+      }
+    );
+  };
+
+  const handleRemoveMember = (memberId: string, memberName: string) => {
+    setRemoveMemberDialog({
+      open: true,
+      memberId,
+      memberName,
+    });
+  };
+
+  const confirmRemoveMember = () => {
+    if (!groupDetails) return;
+
+    removeMember(
+      {
+        groupId: groupDetails.id,
+        memberId: removeMemberDialog.memberId,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Member removed successfully");
+          setRemoveMemberDialog({ open: false, memberId: "", memberName: "" });
+        },
+        onError: (error) => {
+          toast.error("Failed to remove member");
+          console.error("Error removing member:", error);
+        },
+      }
+    );
   };
 
   const getAccountTypeLabel = () => {
@@ -334,7 +424,13 @@ export default function SettingsPage() {
                   groupDetails.members.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className={`flex items-center justify-between p-4 border rounded-lg ${
+                        currentUser &&
+                        member.user &&
+                        member.user.id === currentUser.id
+                          ? "bg-muted/50 border-primary/20"
+                          : ""
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
@@ -349,11 +445,21 @@ export default function SettingsPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">
-                            {member.user
-                              ? `${member.user.firstName} ${member.user.lastName}`
-                              : member.invitedName || "Unknown User"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">
+                              {member.user
+                                ? `${member.user.firstName} ${member.user.lastName}`
+                                : member.invitedName || "Unknown User"}
+                            </p>
+                            {/* Show "You" badge for current user */}
+                            {currentUser &&
+                              member.user &&
+                              member.user.id === currentUser.id && (
+                                <Badge variant="secondary" className="text-xs">
+                                  You
+                                </Badge>
+                              )}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {member.user?.email ||
                               member.invitedEmail ||
@@ -390,9 +496,83 @@ export default function SettingsPage() {
                           {member.status.charAt(0).toUpperCase() +
                             member.status.slice(1)}
                         </Badge>
-                        {member.role !== "owner" && (
-                          <Button variant="outline" size="sm">
-                            Edit
+
+                        {/* Role management - only for owners and admins, and only for active members who are not the current user */}
+                        {(() => {
+                          const currentUserRole = getCurrentUserRole();
+                          const shouldShow =
+                            member.status === "active" &&
+                            member.user?.id !== currentUser?.id &&
+                            member.role !== "owner" &&
+                            (currentUserRole === "owner" ||
+                              currentUserRole === "admin");
+
+                          console.log("Role management debug:", {
+                            memberName: member.user?.firstName,
+                            memberStatus: member.status,
+                            memberUserId: member.user?.id,
+                            currentUserId: currentUser?.id,
+                            currentUserRole: currentUserRole,
+                            selectedAccountRole: selectedAccount.role,
+                            memberRole: member.role,
+                            shouldShow,
+                          });
+
+                          return shouldShow;
+                        })() && (
+                          <select
+                            value={member.role}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLSelectElement>
+                            ) =>
+                              handleUpdateMemberRole(member.id, e.target.value)
+                            }
+                            disabled={isUpdatingRole}
+                            className="w-24 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm"
+                          >
+                            <option value="admin">Admin</option>
+                            <option value="editor">Editor</option>
+                            <option value="viewer">Viewer</option>
+                          </select>
+                        )}
+
+                        {/* Remove button - only for owners and admins, and only for active members who are not the current user */}
+                        {(() => {
+                          const currentUserRole = getCurrentUserRole();
+                          const shouldShow =
+                            member.status === "active" &&
+                            member.user?.id !== currentUser?.id &&
+                            member.role !== "owner" &&
+                            (currentUserRole === "owner" ||
+                              currentUserRole === "admin");
+
+                          console.log("Remove button debug:", {
+                            memberName: member.user?.firstName,
+                            memberStatus: member.status,
+                            memberUserId: member.user?.id,
+                            currentUserId: currentUser?.id,
+                            currentUserRole: currentUserRole,
+                            selectedAccountRole: selectedAccount.role,
+                            memberRole: member.role,
+                            shouldShow,
+                          });
+
+                          return shouldShow;
+                        })() && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleRemoveMember(
+                                member.id,
+                                member.user
+                                  ? `${member.user.firstName} ${member.user.lastName}`
+                                  : member.invitedName || "Unknown User"
+                              )
+                            }
+                            disabled={isRemovingMember}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
@@ -409,13 +589,17 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 )}
-                <Button
-                  className="w-full"
-                  onClick={() => setIsInviteDialogOpen(true)}
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Invite New Member
-                </Button>
+                {/* Only show invite button for owners and admins */}
+                {(selectedAccount.role === "owner" ||
+                  selectedAccount.role === "admin") && (
+                  <Button
+                    className="w-full"
+                    onClick={() => setIsInviteDialogOpen(true)}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Invite New Member
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -504,6 +688,16 @@ export default function SettingsPage() {
       <InviteMemberDialog
         open={isInviteDialogOpen}
         onOpenChange={setIsInviteDialogOpen}
+      />
+
+      <RemoveMemberDialog
+        open={removeMemberDialog.open}
+        onOpenChange={(open) =>
+          setRemoveMemberDialog((prev) => ({ ...prev, open }))
+        }
+        memberName={removeMemberDialog.memberName}
+        onConfirm={confirmRemoveMember}
+        isRemoving={isRemovingMember}
       />
     </div>
   );

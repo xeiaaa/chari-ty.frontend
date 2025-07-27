@@ -12,6 +12,7 @@ import {
   User,
   LogOut,
   CreditCard,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -38,6 +39,7 @@ const navigation = [
     icon: GalleryHorizontalEnd,
   },
   { name: "Payouts", href: "/app/payouts", icon: CreditCard },
+  { name: "Invitations", href: "/app/invitations", icon: Mail },
   { name: "Settings", href: "/app/settings", icon: Settings },
 ];
 
