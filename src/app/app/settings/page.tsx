@@ -207,7 +207,7 @@ export default function SettingsPage() {
 
   if (isLoadingGroup) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <Skeleton className="h-10 w-2/3 mb-1" />
           <Skeleton className="h-6 w-1/2" />
@@ -234,7 +234,7 @@ export default function SettingsPage() {
 
   if (groupError) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center py-8">
           <p className="text-destructive">Failed to load group details</p>
           <p className="text-sm text-muted-foreground mt-2">
@@ -248,7 +248,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-1">Settings</h1>
         <p className="text-muted-foreground">

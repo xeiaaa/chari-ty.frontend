@@ -85,7 +85,7 @@ export default function EditFundraiserPage() {
 
   if (fetchError) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <div className="flex items-center gap-4">
             <Link href={`/app/fundraisers/${slug}`}>
@@ -114,7 +114,7 @@ export default function EditFundraiserPage() {
 
   if (isLoadingFundraiser) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <div className="flex items-center gap-4">
             <Link href={`/app/fundraisers/${slug}`}>
@@ -147,7 +147,7 @@ export default function EditFundraiserPage() {
 
   if (!fundraiser) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <div className="flex items-center gap-4">
             <Link href={`/app/fundraisers/${slug}`}>
@@ -188,7 +188,7 @@ export default function EditFundraiserPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <div className="flex items-center gap-4">
           <Link href={`/app/fundraisers/${slug}`}>

@@ -83,7 +83,7 @@ export default function PublicUserPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="space-y-6">
             <Skeleton className="h-12 w-3/4" />
             <Skeleton className="h-6 w-1/2" />
@@ -120,7 +120,7 @@ export default function PublicUserPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-start justify-between mb-6">

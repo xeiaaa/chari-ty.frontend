@@ -80,7 +80,7 @@ export default function FundraisersPage() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">Fundraisers</h1>
           <p className="text-muted-foreground">
@@ -100,7 +100,7 @@ export default function FundraisersPage() {
   }
   console.log(data);
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <div className="flex justify-between items-center">
           <div>

@@ -93,7 +93,7 @@ export default function PublicFundraiserPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto pt-8 px-4">
+        <div className="max-w-6xl mx-auto pt-8 px-4">
           <div className="bg-card border border-border rounded-lg shadow-sm p-6">
             <div className="text-center py-8">
               <h1 className="text-2xl font-bold text-destructive mb-2">
@@ -116,7 +116,7 @@ export default function PublicFundraiserPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto pt-8 px-4">
+        <div className="max-w-6xl mx-auto pt-8 px-4">
           <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
             <Skeleton className="h-64 w-full" />
             <div className="p-6 space-y-6">
@@ -135,7 +135,7 @@ export default function PublicFundraiserPage() {
   if (!fundraiser) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto pt-8 px-4">
+        <div className="max-w-6xl mx-auto pt-8 px-4">
           <div className="bg-card border border-border rounded-lg shadow-sm p-6">
             <div className="text-center py-8">
               <h1 className="text-2xl font-bold mb-2">Fundraiser Not Found</h1>
@@ -155,7 +155,7 @@ export default function PublicFundraiserPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto pt-8 px-4">
+      <div className="max-w-6xl mx-auto pt-8 px-4">
         {/* Donation Status Notification */}
         {donationStatus && (
           <div

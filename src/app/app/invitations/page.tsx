@@ -44,7 +44,7 @@ export default function InvitationsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">Invitations</h1>
           <p className="text-muted-foreground">
@@ -70,7 +70,7 @@ export default function InvitationsPage() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">Invitations</h1>
           <p className="text-muted-foreground">
@@ -91,7 +91,7 @@ export default function InvitationsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-1">Invitations</h1>
         <p className="text-muted-foreground">Manage your pending invitations</p>

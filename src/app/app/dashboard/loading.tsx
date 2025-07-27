@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="bg-card border border-border rounded-lg shadow-sm p-6">
         <Skeleton className="h-10 w-64 mb-4" />
         <Skeleton className="h-5 w-96 mb-6" />
