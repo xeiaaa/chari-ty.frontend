@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Upload,
@@ -207,8 +208,25 @@ export default function SettingsPage() {
   if (isLoadingGroup) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="mb-6">
+          <Skeleton className="h-10 w-2/3 mb-1" />
+          <Skeleton className="h-6 w-1/2" />
+        </div>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

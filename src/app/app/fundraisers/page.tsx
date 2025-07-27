@@ -119,25 +119,27 @@ export default function FundraisersPage() {
 
       <div className="space-y-6">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="bg-muted/50 border border-border rounded-lg overflow-hidden"
-              >
-                <Skeleton className="h-48 w-full" />
-                <div className="p-4">
-                  <div className="space-y-2 mb-4">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-2 w-full" />
-                    <Skeleton className="h-2 w-4/5" />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="bg-card border border-border rounded-lg shadow-sm overflow-hidden"
+                >
+                  <Skeleton className="h-48 w-full" />
+                  <div className="p-4">
+                    <div className="space-y-2 mb-4">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-2 w-full" />
+                      <Skeleton className="h-2 w-4/5" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : !data?.items?.length ? (
           <div className="bg-card border border-border rounded-lg shadow-sm p-6">

@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FundraisersLoading() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="bg-card border border-border rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
           <Skeleton className="h-10 w-48" />

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Snackbar, useSnackbar } from "@/components/ui/snackbar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 import { useApi, getErrorMessage } from "@/lib/api";
 
@@ -123,11 +124,20 @@ export default function EditFundraiserPage() {
               </Button>
             </Link>
           </div>
+          <div className="mt-4">
+            <Skeleton className="h-10 w-2/3 mb-1" />
+            <Skeleton className="h-6 w-1/2" />
+          </div>
         </div>
         <div className="space-y-6">
           <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Loading fundraiser...</p>
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="h-10 w-full" />
             </div>
           </div>
         </div>
