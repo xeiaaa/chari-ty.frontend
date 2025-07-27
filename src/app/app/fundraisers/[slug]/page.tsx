@@ -265,11 +265,42 @@ export default function FundraiserDetailPage() {
             </Button>
           </Link>
           <div className="flex items-center gap-2 ml-auto">
-            <Link href={`/fundraisers/${fundraiser.slug}`}>
-              <Button variant="ghost" size="sm">
-                View Public Page
-              </Button>
-            </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Link
+                    href={
+                      fundraiser.status === "published"
+                        ? `/fundraisers/${fundraiser.slug}`
+                        : "#"
+                    }
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={fundraiser.status !== "published"}
+                      className={
+                        fundraiser.status !== "published"
+                          ? "cursor-not-allowed"
+                          : ""
+                      }
+                      onClick={
+                        fundraiser.status !== "published"
+                          ? (e) => e.preventDefault()
+                          : undefined
+                      }
+                    >
+                      View Public Page
+                    </Button>
+                  </Link>
+                </span>
+              </TooltipTrigger>
+              {fundraiser.status !== "published" && (
+                <TooltipContent side="top">
+                  Fundraiser must be published to view the public page
+                </TooltipContent>
+              )}
+            </Tooltip>
             <Link href={`/app/fundraisers/${slug}/edit`}>
               <Button variant="outline" size="sm">
                 Edit
