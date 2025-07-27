@@ -507,17 +507,6 @@ export default function SettingsPage() {
                             (currentUserRole === "owner" ||
                               currentUserRole === "admin");
 
-                          console.log("Role management debug:", {
-                            memberName: member.user?.firstName,
-                            memberStatus: member.status,
-                            memberUserId: member.user?.id,
-                            currentUserId: currentUser?.id,
-                            currentUserRole: currentUserRole,
-                            selectedAccountRole: selectedAccount.role,
-                            memberRole: member.role,
-                            shouldShow,
-                          });
-
                           return shouldShow;
                         })() && (
                           <select
@@ -545,17 +534,6 @@ export default function SettingsPage() {
                             member.role !== "owner" &&
                             (currentUserRole === "owner" ||
                               currentUserRole === "admin");
-
-                          console.log("Remove button debug:", {
-                            memberName: member.user?.firstName,
-                            memberStatus: member.status,
-                            memberUserId: member.user?.id,
-                            currentUserId: currentUser?.id,
-                            currentUserRole: currentUserRole,
-                            selectedAccountRole: selectedAccount.role,
-                            memberRole: member.role,
-                            shouldShow,
-                          });
 
                           return shouldShow;
                         })() && (
