@@ -41,6 +41,11 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+enum PayoutTab {
+  STRIPE = "stripe",
+  DONATIONS = "donations",
+}
+
 export default function PayoutsPage() {
   const { selectedAccount } = useAccount();
   const {
@@ -52,7 +57,7 @@ export default function PayoutsPage() {
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get("tab") || "stripe";
+  const currentTab = searchParams.get("tab") || PayoutTab.STRIPE;
 
   const [tab, setTab] = useState(currentTab);
 
@@ -320,12 +325,15 @@ export default function PayoutsPage() {
         onValueChange={handleTabChange}
       >
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="stripe" className="flex items-center space-x-2">
+          <TabsTrigger
+            value={PayoutTab.STRIPE}
+            className="flex items-center space-x-2"
+          >
             <CreditCard className="h-4 w-4" />
             <span>Stripe Connect</span>
           </TabsTrigger>
           <TabsTrigger
-            value="donations"
+            value={PayoutTab.DONATIONS}
             className="flex items-center space-x-2"
           >
             <Receipt className="h-4 w-4" />
@@ -333,7 +341,7 @@ export default function PayoutsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="stripe" className="space-y-6">
+        <TabsContent value={PayoutTab.STRIPE} className="space-y-6">
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-2">
@@ -401,7 +409,7 @@ export default function PayoutsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="donations" className="space-y-6">
+        <TabsContent value={PayoutTab.DONATIONS} className="space-y-6">
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-2">
