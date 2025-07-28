@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 import { useAccount } from "@/contexts/account-context";
 import { useGroupBySlug } from "@/lib/hooks/use-group-by-slug";
@@ -23,18 +25,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import {
-  Upload,
-  Users,
-  Shield,
-  User,
-  Building2,
-  Loader2,
-  Trash2,
-} from "lucide-react";
+import { Users, Shield, User, Building2, Loader2, Trash2 } from "lucide-react";
 import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialog";
 import { RemoveMemberDialog } from "@/components/ui/remove-member-dialog";
 import { toast } from "sonner";
+import { FileUpload } from "@/components/ui/file-upload";
+import { useApi } from "@/lib/api";
 
 enum SettingsTab {
   ACCOUNT = "account",
@@ -45,12 +41,162 @@ enum SettingsTab {
 export default function SettingsPage() {
   const { selectedAccount } = useAccount();
   const { user: currentUser } = useUser();
+  const api = useApi();
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || SettingsTab.ACCOUNT;
 
   const [tab, setTab] = useState(currentTab);
+
+  // File upload state for verification
+  const [uploadedVerificationUrls, setUploadedVerificationUrls] = useState<
+    string[]
+  >([]);
+  const [uploadedAdditionalUrls, setUploadedAdditionalUrls] = useState<
+    string[]
+  >([]);
+  const queryClient = useQueryClient();
+
+  // Get upload signature mutation
+  const getUploadSignatureMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post("/uploads/signature", {
+        folder: "verification-documents",
+      });
+      return response.data as {
+        signature: string;
+        timestamp: number;
+        apiKey: string;
+        cloudName: string;
+      };
+    },
+  });
+
+  // Submit verification documents mutation
+  const submitVerificationMutation = useMutation({
+    mutationFn: async () => {
+      // Combine all uploaded URLs
+      const allUrls = [...uploadedVerificationUrls, ...uploadedAdditionalUrls];
+
+      if (allUrls.length === 0) {
+        throw new Error("Please upload at least one document");
+      }
+
+      // PATCH to backend
+      const response = await api.patch(`/groups/slug/${selectedAccount.slug}`, {
+        documentsUrls: allUrls,
+      });
+
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Documents uploaded and group updated!");
+
+      // Don't clear URLs after successful submission - keep them visible
+      // The URLs are now saved to the backend and will be loaded on next visit
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({
+        queryKey: ["group", selectedAccount.slug],
+      });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
+    },
+  });
+
+  // Upload files to Cloudinary
+  const uploadFilesToCloudinary = async (files: File[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+
+    for (const file of files) {
+      try {
+        // Get upload signature
+        const signature = await getUploadSignatureMutation.mutateAsync();
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", signature.apiKey);
+        formData.append("timestamp", signature.timestamp.toString());
+        formData.append("signature", signature.signature);
+        formData.append("folder", "verification-documents");
+
+        // Upload to Cloudinary
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        uploadedUrls.push(response.data.secure_url);
+      } catch (error) {
+        console.error("Failed to upload file:", file.name, error);
+
+        // Handle specific API error responses
+        if (axios.isAxiosError(error) && error.response?.data) {
+          const errorData = error.response.data;
+          if (errorData.error?.message) {
+            throw new Error(`${file.name}: ${errorData.error.message}`);
+          }
+        }
+
+        // Handle ZIP file error specifically
+        if (
+          file.type === "application/zip" ||
+          file.name.toLowerCase().endsWith(".zip")
+        ) {
+          throw new Error(
+            `${file.name}: ZIP files are not supported. Please extract and upload individual files.`
+          );
+        }
+
+        throw new Error(`Failed to upload ${file.name}`);
+      }
+    }
+
+    return uploadedUrls;
+  };
+
+  // Handle verification documents upload
+  const handleVerificationUpload = async (files: File[]): Promise<string[]> => {
+    try {
+      const urls = await uploadFilesToCloudinary(files);
+      setUploadedVerificationUrls((prev) => [...prev, ...urls]);
+      return urls;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
+      throw error; // Re-throw to let FileUpload component handle it
+    }
+  };
+
+  // Handle additional verification documents upload
+  const handleAdditionalUpload = async (files: File[]): Promise<string[]> => {
+    try {
+      const urls = await uploadFilesToCloudinary(files);
+      setUploadedAdditionalUrls((prev) => [...prev, ...urls]);
+      return urls;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
+      throw error; // Re-throw to let FileUpload component handle it
+    }
+  };
+
+  // Remove uploaded URL
+  const removeVerificationUrl = (index: number) => {
+    setUploadedVerificationUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAdditionalUrl = (index: number) => {
+    setUploadedAdditionalUrls((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleTabChange = (value: string) => {
     setTab(value);
@@ -122,8 +268,28 @@ export default function SettingsPage() {
         website: groupDetails.website || "",
         ein: groupDetails.ein || "",
       });
+
+      // Load existing documents from groupDetails.documentsUrls
+      if (groupDetails.documentsUrls && groupDetails.documentsUrls.length > 0) {
+        const documents = groupDetails.documentsUrls;
+
+        if (selectedAccount.type === "nonprofit" && documents.length > 1) {
+          // For nonprofits, split documents between verification and additional
+          const midPoint = Math.ceil(documents.length / 2);
+          setUploadedVerificationUrls(documents.slice(0, midPoint));
+          setUploadedAdditionalUrls(documents.slice(midPoint));
+        } else {
+          // For individuals and teams, all documents go to verification
+          setUploadedVerificationUrls(documents);
+          setUploadedAdditionalUrls([]);
+        }
+      } else {
+        // Clear any existing documents if none exist
+        setUploadedVerificationUrls([]);
+        setUploadedAdditionalUrls([]);
+      }
     }
-  }, [groupDetails]);
+  }, [groupDetails, selectedAccount.type]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -670,40 +836,50 @@ export default function SettingsPage() {
 
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">
-                    Verification Documents
-                  </label>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Drag and drop your verification documents here, or click
-                      to browse
-                    </p>
-                    <Button variant="outline" size="sm">
-                      Choose File
-                    </Button>
-                  </div>
+                  <FileUpload
+                    label="Verification Documents"
+                    description="Drag and drop your verification documents here, or click to browse. PDF and image files only (JPG, PNG, GIF, WebP). Max 10MB per file."
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tiff,.heic,.heif"
+                    multiple
+                    onUpload={handleVerificationUpload}
+                    uploadedUrls={uploadedVerificationUrls}
+                    onRemoveUploadedUrl={removeVerificationUrl}
+                    disabled={getUploadSignatureMutation.isPending}
+                  />
                 </div>
 
                 {selectedAccount.type === "nonprofit" && (
                   <>
                     <div className="grid gap-2">
-                      <label className="text-sm font-medium">
-                        Additional Verification Documents
-                      </label>
-                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Upload additional verification documents
-                        </p>
-                        <Button variant="outline" size="sm">
-                          Choose File
-                        </Button>
-                      </div>
+                      <FileUpload
+                        label="Additional Verification Documents"
+                        description="Upload additional verification documents (optional). PDF and image files only (JPG, PNG, GIF, WebP)."
+                        accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tiff,.heic,.heif"
+                        multiple
+                        onUpload={handleAdditionalUpload}
+                        uploadedUrls={uploadedAdditionalUrls}
+                        onRemoveUploadedUrl={removeAdditionalUrl}
+                        disabled={getUploadSignatureMutation.isPending}
+                      />
                     </div>
                   </>
                 )}
               </div>
+
+              <Button
+                className="w-full"
+                variant="secondary"
+                onClick={() => submitVerificationMutation.mutate()}
+                disabled={
+                  submitVerificationMutation.isPending ||
+                  (uploadedVerificationUrls.length === 0 &&
+                    uploadedAdditionalUrls.length === 0)
+                }
+              >
+                {submitVerificationMutation.isPending
+                  ? "Uploading..."
+                  : "Upload"}
+              </Button>
 
               <Button className="w-full">
                 <Shield className="h-4 w-4 mr-2" />
