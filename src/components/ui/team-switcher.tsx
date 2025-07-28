@@ -61,7 +61,7 @@ export function TeamSwitcher() {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between"
+            className="min-w-[200px] justify-between"
           >
             {selectedAccount.name}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
