@@ -72,7 +72,17 @@ export default function HomeLayout({
               <Menu className="h-5 w-5" />
             )}
           </Button>
-          <TeamSwitcher />
+          <div className="flex flex-row gap-4 justify-center items-center">
+            <div className="h-16 items-center flex-shrink-0 hidden lg:flex">
+              <Link
+                href="/"
+                className="text-xl font-bold hover:opacity-80 transition-opacity"
+              >
+                Chari-ty
+              </Link>
+            </div>
+            <TeamSwitcher />
+          </div>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
             {!isUserLoaded ? (
@@ -118,7 +128,7 @@ export default function HomeLayout({
               isSidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
-            <div className="flex h-16 items-center px-6 flex-shrink-0">
+            <div className="flex h-16 items-center px-6 flex-shrink-0 lg:hidden">
               <Link
                 href="/"
                 className="text-xl font-bold hover:opacity-80 transition-opacity"
