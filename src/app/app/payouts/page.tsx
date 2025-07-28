@@ -5,6 +5,9 @@ import { useGroupBySlug } from "@/lib/hooks/use-group-by-slug";
 import { useApi, getErrorMessage } from "@/lib/api";
 import { useSnackbar, Snackbar } from "@/components/ui/snackbar";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,7 +40,6 @@ import {
   List,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
 
 export default function PayoutsPage() {
   const { selectedAccount } = useAccount();
@@ -48,6 +50,25 @@ export default function PayoutsPage() {
   } = useGroupBySlug(selectedAccount.slug);
   const api = useApi();
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "stripe";
+
+  const [tab, setTab] = useState(currentTab);
+
+  const handleTabChange = (value: string) => {
+    setTab(value);
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("tab", value);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  // Sync local state if URL changes externally (optional)
+  useEffect(() => {
+    if (currentTab !== tab) {
+      setTab(currentTab);
+    }
+  }, [currentTab, tab]);
 
   // Donation list state
   const [donationFilters, setDonationFilters] = useState({
@@ -293,7 +314,11 @@ export default function PayoutsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="stripe" className="space-y-6">
+      <Tabs
+        defaultValue={tab}
+        className="space-y-6"
+        onValueChange={handleTabChange}
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="stripe" className="flex items-center space-x-2">
             <CreditCard className="h-4 w-4" />
