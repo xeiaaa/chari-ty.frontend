@@ -61,7 +61,7 @@ export function TeamSwitcher() {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between"
+            className="min-w-[200px] justify-between"
           >
             {selectedAccount.type === "individual"
               ? "Personal Account"
