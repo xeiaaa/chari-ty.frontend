@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { useAccount } from "@/contexts/account-context";
 import { useGroupBySlug } from "@/lib/hooks/use-group-by-slug";
 import { useUpdateGroup, UpdateGroupData } from "@/lib/hooks/use-update-group";
@@ -34,9 +36,35 @@ import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialo
 import { RemoveMemberDialog } from "@/components/ui/remove-member-dialog";
 import { toast } from "sonner";
 
+enum SettingsTab {
+  ACCOUNT = "account",
+  MEMBERS = "members",
+  VERIFICATION = "verification",
+}
+
 export default function SettingsPage() {
   const { selectedAccount } = useAccount();
   const { user: currentUser } = useUser();
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || SettingsTab.ACCOUNT;
+
+  const [tab, setTab] = useState(currentTab);
+
+  const handleTabChange = (value: string) => {
+    setTab(value);
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("tab", value);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  // Sync local state if URL changes externally (optional)
+  useEffect(() => {
+    if (currentTab !== tab) {
+      setTab(currentTab);
+    }
+  }, [currentTab, tab]);
 
   // Get current user's role from group details
   const getCurrentUserRole = () => {
@@ -262,29 +290,42 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="account" className="space-y-6">
+      <Tabs
+        defaultValue={tab}
+        className="space-y-6"
+        onValueChange={handleTabChange}
+      >
         <TabsList
           className={`grid w-full ${
             shouldShowTeamMembersTab ? "grid-cols-3" : "grid-cols-2"
           }`}
         >
-          <TabsTrigger value="account" className="flex items-center gap-2">
+          <TabsTrigger
+            value={SettingsTab.ACCOUNT}
+            className="flex items-center gap-2"
+          >
             {getAccountTypeIcon()}
             {getAccountTypeLabel()}
           </TabsTrigger>
           {shouldShowTeamMembersTab && (
-            <TabsTrigger value="members" className="flex items-center gap-2">
+            <TabsTrigger
+              value={SettingsTab.MEMBERS}
+              className="flex items-center gap-2"
+            >
               <Users className="h-4 w-4" />
               Team Members
             </TabsTrigger>
           )}
-          <TabsTrigger value="verification" className="flex items-center gap-2">
+          <TabsTrigger
+            value={SettingsTab.VERIFICATION}
+            className="flex items-center gap-2"
+          >
             <Shield className="h-4 w-4" />
             Verification
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="account" className="space-y-6">
+        <TabsContent value={SettingsTab.ACCOUNT} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
@@ -432,7 +473,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {shouldShowTeamMembersTab && (
-          <TabsContent value="members" className="space-y-6">
+          <TabsContent value={SettingsTab.MEMBERS} className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Team Members</CardTitle>
@@ -605,7 +646,7 @@ export default function SettingsPage() {
           </TabsContent>
         )}
 
-        <TabsContent value="verification" className="space-y-6">
+        <TabsContent value={SettingsTab.VERIFICATION} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Verification</CardTitle>
