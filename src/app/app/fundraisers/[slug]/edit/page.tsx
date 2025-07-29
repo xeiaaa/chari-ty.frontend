@@ -29,6 +29,7 @@ import {
   FundraiserForm,
   FundraiserFormData,
 } from "@/components/fundraisers/FundraiserForm";
+import { GalleryForm } from "@/components/fundraisers/gallery-form";
 
 export default function EditFundraiserPage() {
   const { slug } = useParams() as { slug: string };
@@ -215,6 +216,19 @@ export default function EditFundraiserPage() {
             submitLabel="Update Fundraiser"
             loading={updateFundraiserMutation.isPending}
             error={error}
+          />
+        </div>
+
+        {/* Gallery Section */}
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+          <GalleryForm
+            fundraiserId={fundraiser.id}
+            slug={slug}
+            existingGallery={fundraiser.fundraiserGallery}
+            onSuccess={() =>
+              showSnackbar("Gallery updated successfully!", "success")
+            }
+            onError={(err) => showSnackbar(err, "error")}
           />
         </div>
 

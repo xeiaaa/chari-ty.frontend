@@ -61,6 +61,23 @@ export interface Fundraiser {
     donationCount: number;
     progressPercentage: number;
   };
+  fundraiserGallery?: Array<{
+    id: string;
+    upload: {
+      cloudinaryAssetId: string;
+      publicId: string;
+      url: string;
+      eagerUrl?: string;
+      format: string;
+      resourceType: string;
+      size: number;
+      pages?: number;
+      originalFilename: string;
+      uploadedAt: string;
+    };
+    caption?: string;
+    order: number;
+  }>;
 }
 
 interface Milestone {

@@ -124,6 +124,7 @@ export default function SettingsPage() {
         formData.append("timestamp", signature.timestamp.toString());
         formData.append("signature", signature.signature);
         formData.append("folder", "verification-documents");
+        formData.append("eager", "q_auto,f_auto");
 
         // Upload to Cloudinary
         const response = await axios.post(
