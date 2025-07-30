@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "../api";
+import { GroupUploadItem } from "@/components/groups/group-gallery-form";
 
 export interface GroupMemberUser {
   id: string;
@@ -47,6 +48,7 @@ export interface GroupDetails {
   stripeId?: string | null;
   ownerId: string;
   members: GroupMember[];
+  groupUploads: GroupUploadItem[]
 }
 
 export function useGroupBySlug(slug: string, enabled: boolean = true) {
