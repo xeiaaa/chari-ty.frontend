@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import * as z from "zod";
@@ -44,6 +44,18 @@ interface UploadSignature {
   cloudName: string;
 }
 
+interface CloudinaryAsset {
+  cloudinaryAssetId: string;
+  publicId: string;
+  url: string;
+  eagerUrl?: string;
+  format: string;
+  resourceType: string;
+  size: number;
+  originalFilename: string;
+  uploadedAt: string;
+}
+
 export enum FundraiserCategory {
   EDUCATION = "education",
   HEALTH = "health",
@@ -68,10 +80,8 @@ export const fundraiserSchema = z.object({
   goalAmount: z.coerce.number().min(1, "Goal amount must be greater than 0"),
   currency: z.string().min(1, "Currency is required"),
   endDate: z.string().optional(),
-  coverUrl: z.string().optional(),
-  galleryUrls: z
-    .array(z.object({ url: z.string().url("Gallery URL must be a valid URL") }))
-    .optional(),
+  coverPublicId: z.string().optional(),
+  removeCover: z.boolean().optional(),
   isPublic: z.boolean().optional(),
 });
 
@@ -83,6 +93,7 @@ interface FundraiserFormProps {
   submitLabel?: string;
   loading?: boolean;
   error?: string | null;
+  existingCoverUrl?: string;
 }
 
 export function FundraiserForm({
@@ -91,14 +102,22 @@ export function FundraiserForm({
   submitLabel = "Save",
   loading = false,
   error,
+  existingCoverUrl,
 }: FundraiserFormProps) {
   const api = useApi();
-  const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
     null
   );
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize cover image preview from existing cover URL if it exists
+  React.useEffect(() => {
+    if (existingCoverUrl) {
+      setCoverImagePreview(existingCoverUrl);
+    }
+  }, [existingCoverUrl]);
 
   const form = useForm<FundraiserFormData>({
     resolver: zodResolver(fundraiserSchema),
@@ -110,8 +129,8 @@ export function FundraiserForm({
       goalAmount: 0,
       currency: "USD",
       endDate: "",
-      coverUrl: "",
-      galleryUrls: [],
+      coverPublicId: "",
+      removeCover: false,
       isPublic: true,
       ...defaultValues,
     },
@@ -121,20 +140,9 @@ export function FundraiserForm({
   const {
     register,
     handleSubmit,
-    control,
     setValue,
     formState: { errors, isValid },
   } = form;
-
-  // Gallery URLs field array
-  const {
-    fields: galleryFields,
-    append,
-    remove,
-  } = useFieldArray({
-    control,
-    name: "galleryUrls",
-  });
 
   // Get upload signature mutation
   const getUploadSignatureMutation = useMutation({
@@ -146,33 +154,51 @@ export function FundraiserForm({
     },
   });
 
-  // Upload to Cloudinary mutation
-  const uploadToCloudinaryMutation = useMutation({
-    mutationFn: async ({
-      file,
-      signature,
-    }: {
-      file: File;
-      signature: UploadSignature;
-    }) => {
+  // Upload to Cloudinary function
+  const uploadToCloudinary = async (file: File): Promise<CloudinaryAsset> => {
+    try {
+      // Get upload signature
+      const signature = await getUploadSignatureMutation.mutateAsync();
+
+      // Prepare form data
       const formData = new FormData();
       formData.append("file", file);
       formData.append("api_key", signature.apiKey);
       formData.append("timestamp", signature.timestamp.toString());
       formData.append("signature", signature.signature);
       formData.append("folder", "fundraisers");
+      formData.append("eager", "q_auto,f_auto");
+      formData.append("use_filename", "true");
+      formData.append("unique_filename", "true");
 
+      // Upload to Cloudinary
       const response = await axios.post(
         `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      return response.data;
-    },
-  });
+
+      return {
+        cloudinaryAssetId: response.data.public_id,
+        publicId: response.data.public_id,
+        url: response.data.secure_url,
+        eagerUrl: response.data.eager?.[0]?.secure_url,
+        format: response.data.format,
+        resourceType: response.data.resource_type,
+        size: response.data.bytes,
+        originalFilename: response.data.original_filename,
+        uploadedAt: new Date().toISOString(),
+      };
+    } catch {
+      console.error("Failed to upload file:", file.name);
+      throw new Error(`Failed to upload ${file.name}`);
+    }
+  };
 
   // Handle file selection
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
@@ -183,54 +209,64 @@ export function FundraiserForm({
         setLocalError("Image size must be less than 5MB");
         return;
       }
-      setCoverImage(file);
+
       setLocalError(null);
+
+      // Show preview immediately
       const reader = new FileReader();
       reader.onload = (e) => {
         setCoverImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
 
-  // Handle file upload
-  const handleFileUpload = async (file: File): Promise<string> => {
-    try {
-      const signature = await getUploadSignatureMutation.mutateAsync();
-      const result = await uploadToCloudinaryMutation.mutateAsync({
-        file,
-        signature,
-      });
-      return result.secure_url;
-    } catch {
-      throw new Error("Failed to upload image");
+      // Auto-upload to Cloudinary
+      setIsUploading(true);
+      try {
+        const uploadedAsset = await uploadToCloudinary(file);
+        setCoverImagePreview(uploadedAsset.eagerUrl || uploadedAsset.url); // Use eager URL for better performance
+        setValue("coverPublicId", uploadedAsset.publicId);
+      } catch {
+        setLocalError("Failed to upload image. Please try again.");
+        setCoverImagePreview(null);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
   const internalSubmit = async (data: FundraiserFormData) => {
     setLocalError(null);
-    if (!data.coverUrl && !coverImage) {
+
+    // If there's no coverPublicId and no existing cover, require an image
+    if (!data.coverPublicId && !existingCoverUrl) {
       setLocalError("Cover image is required");
       return;
     }
 
-    let coverUrl = data.coverUrl;
-    if (coverImage) {
-      coverUrl = await handleFileUpload(coverImage);
+    // Determine if we should remove the cover
+    const shouldRemoveCover =
+      existingCoverUrl && !data.coverPublicId && !coverImagePreview;
+
+    // If there's an existing cover but no new coverPublicId and we're not removing, keep the existing one
+    let finalCoverPublicId = data.coverPublicId;
+    if (
+      !data.coverPublicId &&
+      existingCoverUrl &&
+      defaultValues?.coverPublicId &&
+      !shouldRemoveCover
+    ) {
+      finalCoverPublicId = defaultValues.coverPublicId;
     }
 
-    onSubmit({ ...data, coverUrl });
+    onSubmit({
+      ...data,
+      coverPublicId: finalCoverPublicId,
+      removeCover: shouldRemoveCover || undefined,
+    });
   };
 
   const getFieldError = (field: string) =>
     errors[field as keyof typeof errors]?.message;
-
-  const getArrayFieldError = (field: string, index: number, subField: string) =>
-    (
-      errors[field as keyof typeof errors] as {
-        [key: number]: { [key: string]: { message: string } };
-      }
-    )?.[index]?.[subField]?.message ?? "";
 
   return (
     <form onSubmit={handleSubmit(internalSubmit)} className="space-y-6">
@@ -308,7 +344,8 @@ export function FundraiserForm({
         <h2 className="text-xl font-semibold">Media</h2>
         <div className="space-y-2">
           <Label>Cover Image</Label>
-          <input type="hidden" {...register("coverUrl")} />
+          <input type="hidden" {...register("coverPublicId")} />
+          <input type="hidden" {...register("removeCover")} />
           {coverImagePreview ? (
             <div className="relative">
               <img
@@ -322,9 +359,12 @@ export function FundraiserForm({
                 size="sm"
                 className="absolute top-2 right-2"
                 onClick={() => {
-                  setCoverImage(null);
                   setCoverImagePreview(null);
-                  setValue("coverUrl", "");
+                  setValue("coverPublicId", "");
+                  // If this was an existing cover, we need to signal to remove it
+                  if (existingCoverUrl && defaultValues?.coverPublicId) {
+                    setValue("removeCover", true);
+                  }
                 }}
               >
                 <X className="h-4 w-4" />
@@ -337,8 +377,9 @@ export function FundraiserForm({
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
               >
-                Choose Image
+                {isUploading ? "Uploading..." : "Choose Image"}
               </Button>
             </div>
           )}
@@ -349,37 +390,6 @@ export function FundraiserForm({
             onChange={handleFileSelect}
             className="hidden"
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Gallery Images (Optional)</Label>
-          {galleryFields.map((field, index) => (
-            <div key={field.id} className="flex gap-2 items-end">
-              <FormField<FundraiserFormData>
-                label={`Gallery Image ${index + 1}`}
-                register={register}
-                name={`galleryUrls.${index}.url` as const}
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                error={getArrayFieldError("galleryUrls", index, "url")}
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => remove(index)}
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => append({ url: "" })}
-          >
-            Add Gallery Image
-          </Button>
         </div>
       </div>
 
@@ -411,13 +421,11 @@ export function FundraiserForm({
           disabled={
             loading ||
             getUploadSignatureMutation.isPending ||
-            uploadToCloudinaryMutation.isPending ||
+            isUploading ||
             !isValid
           }
         >
-          {loading ||
-          getUploadSignatureMutation.isPending ||
-          uploadToCloudinaryMutation.isPending
+          {loading || getUploadSignatureMutation.isPending || isUploading
             ? "Saving..."
             : submitLabel}
         </Button>

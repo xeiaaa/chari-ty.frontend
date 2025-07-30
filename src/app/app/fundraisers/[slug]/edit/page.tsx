@@ -63,7 +63,8 @@ export default function EditFundraiserPage() {
     mutationFn: async (data: FundraiserFormData) => {
       const payload = {
         ...data,
-        galleryUrls: data.galleryUrls?.map((g) => g.url) ?? [],
+        endDate: data.endDate || undefined,
+        removeCover: data.removeCover || undefined,
       };
       const response = await api.patch(
         `/fundraisers/${fundraiser!.id}`,
@@ -183,8 +184,8 @@ export default function EditFundraiserPage() {
     endDate: fundraiser.endDate
       ? new Date(fundraiser.endDate).toISOString().split("T")[0]
       : "",
-    coverUrl: fundraiser.coverUrl,
-    galleryUrls: fundraiser.galleryUrls.map((url: string) => ({ url })),
+    coverPublicId: fundraiser.cover?.publicId || "",
+    removeCover: false,
     isPublic: fundraiser.isPublic,
   };
 
@@ -216,6 +217,7 @@ export default function EditFundraiserPage() {
             submitLabel="Update Fundraiser"
             loading={updateFundraiserMutation.isPending}
             error={error}
+            existingCoverUrl={fundraiser.cover?.eagerUrl || fundraiser.coverUrl}
           />
         </div>
 

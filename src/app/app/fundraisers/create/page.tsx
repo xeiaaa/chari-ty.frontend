@@ -29,7 +29,6 @@ export default function CreateFundraiserPage() {
     mutationFn: async (data: CreateFundraiserForm) => {
       const payload = {
         ...data,
-        galleryUrls: data.galleryUrls?.map((g) => g.url).filter(Boolean) || [],
         endDate: data.endDate || undefined,
         groupId: selectedAccount.id,
       };

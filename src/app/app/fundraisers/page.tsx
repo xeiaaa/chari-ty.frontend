@@ -17,7 +17,21 @@ interface Fundraiser {
   goalAmount: string; // Backend returns as string
   currency: string;
   endDate?: string;
-  coverUrl: string;
+  cover?: {
+    cloudinaryAssetId: string;
+    createdAt: string;
+    eagerUrl: string;
+    format: string;
+    id: string;
+    originalFilename: string;
+    pages: number;
+    publicId: string;
+    resourceType: string;
+    size: number;
+    updatedAt: string;
+    uploadedAt: string;
+    uploadedById: string;
+  };
   galleryUrls: string[];
   ownerType: "user" | "group";
   userId?: string;
@@ -168,7 +182,7 @@ export default function FundraisersPage() {
               >
                 <div className="h-48 bg-muted relative">
                   <img
-                    src={fundraiser.coverUrl}
+                    src={fundraiser.cover?.eagerUrl}
                     alt={fundraiser.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
