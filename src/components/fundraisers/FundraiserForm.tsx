@@ -37,6 +37,19 @@ const CURRENCIES = [
   { value: "CAD", label: "CAD ($)" },
 ] as const;
 
+interface CloudinaryAsset {
+  cloudinaryAssetId: string;
+  publicId: string;
+  url: string;
+  eagerUrl?: string;
+  format: string;
+  resourceType: string;
+  size: number;
+  pages?: number;
+  originalFilename: string;
+  uploadedAt: string;
+}
+
 interface UploadSignature {
   signature: string;
   timestamp: number;
@@ -83,6 +96,7 @@ interface FundraiserFormProps {
   submitLabel?: string;
   loading?: boolean;
   error?: string | null;
+  onRemoveCover?: () => void;
 }
 
 export function FundraiserForm({
@@ -91,13 +105,14 @@ export function FundraiserForm({
   submitLabel = "Save",
   loading = false,
   error,
+  onRemoveCover,
 }: FundraiserFormProps) {
   const api = useApi();
-  const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
     null
   );
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<FundraiserFormData>({
@@ -148,78 +163,96 @@ export function FundraiserForm({
 
   // Upload to Cloudinary mutation
   const uploadToCloudinaryMutation = useMutation({
-    mutationFn: async ({
-      file,
-      signature,
-    }: {
-      file: File;
-      signature: UploadSignature;
-    }) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", signature.apiKey);
-      formData.append("timestamp", signature.timestamp.toString());
-      formData.append("signature", signature.signature);
-      formData.append("folder", "fundraisers");
+    mutationFn: async (file: File): Promise<CloudinaryAsset> => {
+      try {
+        // Get upload signature
+        const signature = await getUploadSignatureMutation.mutateAsync();
 
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      return response.data;
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", signature.apiKey);
+        formData.append("timestamp", signature.timestamp.toString());
+        formData.append("signature", signature.signature);
+        formData.append("folder", "fundraisers");
+        formData.append("eager", "q_auto,f_auto");
+        formData.append("use_filename", "true");
+        formData.append("unique_filename", "true");
+
+        // Upload to Cloudinary
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        return {
+          cloudinaryAssetId: response.data.public_id,
+          publicId: response.data.public_id,
+          url: response.data.secure_url,
+          eagerUrl: response.data.eager?.[0]?.secure_url,
+          format: response.data.format,
+          resourceType: response.data.resource_type,
+          size: response.data.bytes,
+          originalFilename: response.data.original_filename,
+          uploadedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error("Failed to upload file:", file.name, error);
+        throw new Error(`Failed to upload ${file.name}`);
+      }
     },
   });
 
-  // Handle file selection
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle file selection and immediate upload
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
         setLocalError("Please select an image file");
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setLocalError("Image size must be less than 5MB");
+      if (file.size > 10 * 1024 * 1024) {
+        setLocalError("Image size must be less than 10MB");
         return;
       }
-      setCoverImage(file);
+
       setLocalError(null);
+      setIsUploadingCover(true);
+
+      // Create immediate preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setCoverImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
 
-  // Handle file upload
-  const handleFileUpload = async (file: File): Promise<string> => {
-    try {
-      const signature = await getUploadSignatureMutation.mutateAsync();
-      const result = await uploadToCloudinaryMutation.mutateAsync({
-        file,
-        signature,
-      });
-      return result.secure_url;
-    } catch {
-      throw new Error("Failed to upload image");
+      try {
+        // Upload immediately
+        const result = await uploadToCloudinaryMutation.mutateAsync(file);
+        setValue("coverUrl", result.url);
+        // File is now uploaded and URL is set in form
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to upload image";
+        setLocalError(message);
+        setCoverImagePreview(null);
+      } finally {
+        setIsUploadingCover(false);
+      }
     }
   };
 
   const internalSubmit = async (data: FundraiserFormData) => {
     setLocalError(null);
-    if (!data.coverUrl && !coverImage) {
+    if (!data.coverUrl) {
       setLocalError("Cover image is required");
       return;
     }
 
-    let coverUrl = data.coverUrl;
-    if (coverImage) {
-      coverUrl = await handleFileUpload(coverImage);
-    }
-
-    onSubmit({ ...data, coverUrl });
+    onSubmit({ ...data, coverUrl: data.coverUrl });
   };
 
   const getFieldError = (field: string) =>
@@ -316,16 +349,27 @@ export function FundraiserForm({
                 alt="Cover preview"
                 className="w-full h-48 object-cover rounded-lg border"
               />
+              {isUploadingCover && (
+                <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-sm text-muted-foreground">
+                      Uploading...
+                    </p>
+                  </div>
+                </div>
+              )}
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
                 className="absolute top-2 right-2"
                 onClick={() => {
-                  setCoverImage(null);
                   setCoverImagePreview(null);
                   setValue("coverUrl", "");
+                  onRemoveCover?.();
                 }}
+                disabled={isUploadingCover}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -337,8 +381,9 @@ export function FundraiserForm({
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingCover}
               >
-                Choose Image
+                {isUploadingCover ? "Uploading..." : "Choose Image"}
               </Button>
             </div>
           )}
@@ -408,16 +453,9 @@ export function FundraiserForm({
       <div className="flex justify-end pt-4">
         <Button
           type="submit"
-          disabled={
-            loading ||
-            getUploadSignatureMutation.isPending ||
-            uploadToCloudinaryMutation.isPending ||
-            !isValid
-          }
+          disabled={loading || uploadToCloudinaryMutation.isPending || !isValid}
         >
-          {loading ||
-          getUploadSignatureMutation.isPending ||
-          uploadToCloudinaryMutation.isPending
+          {loading || uploadToCloudinaryMutation.isPending
             ? "Saving..."
             : submitLabel}
         </Button>

@@ -60,7 +60,9 @@ export default function EditFundraiserPage() {
 
   // Update fundraiser mutation
   const updateFundraiserMutation = useMutation({
-    mutationFn: async (data: FundraiserFormData) => {
+    mutationFn: async (
+      data: FundraiserFormData & { removeCover?: boolean }
+    ) => {
       const payload = {
         ...data,
         galleryUrls: data.galleryUrls?.map((g) => g.url) ?? [],
@@ -80,6 +82,31 @@ export default function EditFundraiserPage() {
     onError: (err) => {
       const message = getErrorMessage(err);
       setError(message);
+      showSnackbar(message, "error");
+    },
+  });
+
+  // Remove cover mutation
+  const removeCoverMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        ...defaultValues,
+        galleryUrls: defaultValues.galleryUrls?.map((g) => g.url) ?? [],
+        removeCover: true,
+      };
+      const response = await api.patch(
+        `/fundraisers/${fundraiser!.id}`,
+        payload
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraisers"] });
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
+      showSnackbar("Cover image removed successfully!", "success");
+    },
+    onError: (err) => {
+      const message = getErrorMessage(err);
       showSnackbar(message, "error");
     },
   });
@@ -216,6 +243,7 @@ export default function EditFundraiserPage() {
             submitLabel="Update Fundraiser"
             loading={updateFundraiserMutation.isPending}
             error={error}
+            onRemoveCover={() => removeCoverMutation.mutate()}
           />
         </div>
 
