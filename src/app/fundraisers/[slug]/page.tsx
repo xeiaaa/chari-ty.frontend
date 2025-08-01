@@ -14,6 +14,7 @@ import {
   PublicTimelineMilestoneList,
 } from "@/components/fundraisers/public-timeline-milestone-list";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { useLocalStorage } from "@/lib/hooks/use-local-storage";
 
 interface Fundraiser {
   id: string;
@@ -48,6 +49,22 @@ export default function PublicFundraiserPage() {
   const slug = params.slug as string;
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
   const [donationStatus, setDonationStatus] = useState<string | null>(null);
+
+  const [, setPageAliases] = useLocalStorage<Record<string, string>>(
+    "fundraiserAliasMap",
+    {}
+  );
+
+  useEffect(() => {
+    const alias = searchParams.get("alias");
+    console.info({ alias });
+    if (alias && slug) {
+      setPageAliases((prev) => ({
+        ...prev,
+        [slug]: alias,
+      }));
+    }
+  }, [searchParams]);
 
   const {
     data: fundraiser,
