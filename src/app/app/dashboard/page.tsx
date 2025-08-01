@@ -13,6 +13,7 @@ import {
   Target,
   UserPlus,
   Gift,
+  BarChart3,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -258,6 +259,169 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">
                 {dashboardData.team.lastMemberJoined.date}
               </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Fundraiser Link Stats */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-purple-500" />
+          Fundraiser Link Stats
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Traffic Sources
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {dashboardData?.linkStats?.totalTrafficSources || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">Links created</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Donations from Shared Links
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(
+                  dashboardData?.linkStats?.donationsFromSharedLinks || 0
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {dashboardData?.linkStats?.percentageFromSharedLinks || 0}% of
+                total
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Avg. Donation per Link
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(
+                  dashboardData?.linkStats?.avgDonationPerLink || 0
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Average per traffic source
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Top Performing Link
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-semibold">
+                {dashboardData?.linkStats?.topPerformingLink?.alias ||
+                  "No links"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {dashboardData?.linkStats?.topPerformingLink?.fundraiser ||
+                  "No fundraisers"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatCurrency(
+                  dashboardData?.linkStats?.topPerformingLink?.totalDonations ||
+                    0
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Engagement Insights */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-green-500" />
+          Engagement Insights
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span className="text-2xl">📈</span>
+                Most Shared Fundraiser
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                <h3 className="font-semibold text-lg mb-2">
+                  {dashboardData?.engagementInsights?.mostSharedFundraiser
+                    ?.name || "No fundraisers"}
+                </h3>
+                <div className="space-y-2">
+                  <p className="text-sm">
+                    <span className="font-medium">
+                      {dashboardData?.engagementInsights?.mostSharedFundraiser
+                        ?.shareCount || 0}
+                    </span>{" "}
+                    shares
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">
+                      {formatCurrency(
+                        dashboardData?.engagementInsights?.mostSharedFundraiser
+                          ?.totalRaised || 0
+                      )}
+                    </span>{" "}
+                    raised
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span className="text-2xl">👤</span>
+                Member with Most Shared Links
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200">
+                <h3 className="font-semibold text-lg mb-2">
+                  {dashboardData?.engagementInsights?.memberWithMostLinks
+                    ?.name || "No members"}
+                </h3>
+                <div className="space-y-2">
+                  <p className="text-sm">
+                    <span className="font-medium">
+                      {dashboardData?.engagementInsights?.memberWithMostLinks
+                        ?.linkCount || 0}
+                    </span>{" "}
+                    links created
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">
+                      {formatCurrency(
+                        dashboardData?.engagementInsights?.memberWithMostLinks
+                          ?.totalRaised || 0
+                      )}
+                    </span>{" "}
+                    raised via links
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

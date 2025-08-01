@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { useApi } from '@/lib/api';
+import { useQuery } from "@tanstack/react-query";
+import { useApi } from "@/lib/api";
 
 export interface DashboardData {
   fundraising: {
@@ -19,8 +19,32 @@ export interface DashboardData {
       date: string;
     };
   };
+  linkStats: {
+    totalTrafficSources: number;
+    topPerformingLink: {
+      alias: string;
+      fundraiser: string;
+      totalDonations: number;
+      donationCount: number;
+    };
+    donationsFromSharedLinks: number;
+    percentageFromSharedLinks: number;
+    avgDonationPerLink: number;
+  };
+  engagementInsights: {
+    mostSharedFundraiser: {
+      name: string;
+      shareCount: number;
+      totalRaised: number;
+    };
+    memberWithMostLinks: {
+      name: string;
+      linkCount: number;
+      totalRaised: number;
+    };
+  };
   recentActivity: Array<{
-    type: 'fundraiser_created' | 'donation_received' | 'member_joined';
+    type: "fundraiser_created" | "donation_received" | "member_joined";
     user: string;
     action: string;
     target?: string;
@@ -50,7 +74,7 @@ export const useDashboard = (groupSlug: string) => {
   const api = useApi();
 
   return useQuery({
-    queryKey: ['dashboard', groupSlug],
+    queryKey: ["dashboard", groupSlug],
     queryFn: async (): Promise<DashboardData> => {
       const response = await api.get(`/groups/slug/${groupSlug}/dashboard`);
       return response.data;

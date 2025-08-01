@@ -311,7 +311,6 @@ const MilestoneJourneyPage = () => {
                 {/* <div className="timeline-line left-6!" /> */}
                 <div className="timeline-list w-full p-2 ml-1 gap-0!">
                   {fundraiser.milestones.map((milestone, idx) => {
-                    console.log({ milestone });
                     return (
                       <div
                         className={`w-full flex justify-center items-center gap-3 relative ${

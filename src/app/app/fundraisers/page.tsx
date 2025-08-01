@@ -112,7 +112,7 @@ export default function FundraisersPage() {
       </div>
     );
   }
-  console.log(data);
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
