@@ -25,6 +25,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { useApi } from "@/lib/api";
+import { useLocalStorage } from "@/lib/hooks/use-local-storage";
 
 const PREDEFINED_AMOUNTS = [1, 3, 5, 10, 20, 50, 100, 500, 1000];
 
@@ -67,6 +68,15 @@ function DonationFormContent({
   const stripe = useStripe();
   const elements = useElements();
   const api = useApi();
+
+  // Get the alias from localStorage
+  const [fundraiserAliasMap] = useLocalStorage<Record<string, string>>(
+    "fundraiserAliasMap",
+    {}
+  );
+
+  // Get the alias for this specific fundraiser
+  const fundraiserAlias = fundraiserAliasMap[fundraiser.slug];
 
   const form = useForm<DonationForm>({
     resolver: zodResolver(donationSchema),
@@ -123,6 +133,7 @@ function DonationFormContent({
         isAnonymous: data.isAnonymous,
         name: data.isAnonymous ? undefined : data.name,
         message: data.isAnonymous ? undefined : data.message,
+        ...(fundraiserAlias && { alias: fundraiserAlias }),
       };
       const response = await api.post(
         "/payments/stripe/create-intent",
