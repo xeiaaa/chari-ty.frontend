@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, User, Check } from "lucide-react";
 import { toast } from "sonner";
 import SkeletonLoader from "@/components/common/skeleton-loader";
+import PageHeader from "@/components/common/page-header";
 
 export default function InvitationsPage() {
   const router = useRouter();
@@ -49,12 +50,10 @@ export default function InvitationsPage() {
   if (error) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Invitations</h1>
-          <p className="text-muted-foreground">
-            Manage your pending invitations
-          </p>
-        </div>
+        <PageHeader
+          title="Invitations"
+          message="Manage your pending invitations"
+        />
         <div className="space-y-4">
           <Card>
             <CardContent className="pt-6">
@@ -70,10 +69,10 @@ export default function InvitationsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Invitations</h1>
-        <p className="text-muted-foreground">Manage your pending invitations</p>
-      </div>
+      <PageHeader
+        title="Invitations"
+        message="Manage your pending invitations"
+      />
 
       <div className="space-y-4">
         {invitations && invitations.length > 0 ? (
