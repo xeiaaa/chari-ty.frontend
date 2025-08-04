@@ -40,6 +40,8 @@ import {
   List,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import SkeletonLoader from "@/components/common/skeleton-loader";
+import PageHeader from "@/components/common/page-header";
 
 enum PayoutTab {
   STRIPE = "stripe",
@@ -259,37 +261,16 @@ export default function PayoutsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-10 w-32" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="card" />;
   }
 
   if (error) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Donation Payouts</h1>
-          <p className="text-muted-foreground">
-            Connect your Stripe account to receive donations from your
-            fundraisers
-          </p>
-        </div>
+        <PageHeader
+          title="Donation Payouts"
+          message="Connect your Stripe account to receive donations from your fundraisers"
+        />
         <div className="space-y-6">
           <Card>
             <CardContent className="pt-6">
@@ -312,12 +293,10 @@ export default function PayoutsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Donation Payouts</h1>
-        <p className="text-muted-foreground">
-          Connect your Stripe account to receive donations from your fundraisers
-        </p>
-      </div>
+      <PageHeader
+        title="Donation Payouts"
+        message="Connect your Stripe account to receive donations from your fundraisers"
+      />
 
       <Tabs
         defaultValue={tab}
