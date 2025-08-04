@@ -34,10 +34,7 @@ import {
 import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialog";
 import { RemoveMemberDialog } from "@/components/ui/remove-member-dialog";
 import { toast } from "sonner";
-import {
-  GroupGalleryForm,
-  UploadType,
-} from "@/components/groups/group-gallery-form";
+import { GroupGalleryForm } from "@/components/groups/group-gallery-form";
 
 enum SettingsTab {
   ACCOUNT = "account",
@@ -685,7 +682,7 @@ export default function SettingsPage() {
                     <GroupGalleryForm
                       groupId={groupDetails.id}
                       groupSlug={groupDetails.slug}
-                      type={UploadType.VERIFICATION}
+                      type="verification"
                       existingUploads={groupDetails.groupUploads}
                       onSuccess={() => console.log("Gallery images uploaded!")}
                     />
@@ -708,7 +705,7 @@ export default function SettingsPage() {
                 <GroupGalleryForm
                   groupId={groupDetails.id}
                   groupSlug={groupDetails.slug}
-                  type={UploadType.GALLERY}
+                  type="gallery"
                   existingUploads={groupDetails.groupUploads}
                   onSuccess={() => console.log("Gallery images uploaded!")}
                 />

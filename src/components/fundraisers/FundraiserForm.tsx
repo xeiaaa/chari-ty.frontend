@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import * as z from "zod";
-import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { FormSelect } from "@/components/ui/form-select";
 import { Label } from "@/components/ui/label";
-import { Upload, X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { useApi } from "@/lib/api";
 import type { FormSelectOption } from "@/components/ui/form-select";
+import axios from "axios";
+import { toast } from "sonner";
 
 const FUNDRAISER_CATEGORIES = [
   { value: "education", label: "Education" },
@@ -36,25 +39,6 @@ const CURRENCIES = [
   { value: "GBP", label: "GBP (£)" },
   { value: "CAD", label: "CAD ($)" },
 ] as const;
-
-interface UploadSignature {
-  signature: string;
-  timestamp: number;
-  apiKey: string;
-  cloudName: string;
-}
-
-interface CloudinaryAsset {
-  cloudinaryAssetId: string;
-  publicId: string;
-  url: string;
-  eagerUrl?: string;
-  format: string;
-  resourceType: string;
-  size: number;
-  originalFilename: string;
-  uploadedAt: string;
-}
 
 export enum FundraiserCategory {
   EDUCATION = "education",
@@ -96,6 +80,25 @@ interface FundraiserFormProps {
   existingCoverUrl?: string;
 }
 
+interface UploadSignature {
+  signature: string;
+  timestamp: number;
+  apiKey: string;
+  cloudName: string;
+}
+
+interface CloudinaryAsset {
+  cloudinaryAssetId: string;
+  publicId: string;
+  url: string;
+  eagerUrl?: string;
+  format: string;
+  resourceType: string;
+  size: number;
+  originalFilename: string;
+  uploadedAt: string;
+}
+
 export function FundraiserForm({
   defaultValues,
   onSubmit,
@@ -105,19 +108,15 @@ export function FundraiserForm({
   existingCoverUrl,
 }: FundraiserFormProps) {
   const api = useApi();
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
-    null
-  );
   const [localError, setLocalError] = useState<string | null>(null);
+  const [coverPublicId, setCoverPublicId] = useState<string | null>(
+    defaultValues?.coverPublicId || null
+  );
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
+    existingCoverUrl || null
+  );
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Initialize cover image preview from existing cover URL if it exists
-  React.useEffect(() => {
-    if (existingCoverUrl) {
-      setCoverImagePreview(existingCoverUrl);
-    }
-  }, [existingCoverUrl]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const form = useForm<FundraiserFormData>({
     resolver: zodResolver(fundraiserSchema),
@@ -148,7 +147,7 @@ export function FundraiserForm({
   const getUploadSignatureMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post("/uploads/signature", {
-        folder: "fundraisers",
+        folder: "covers",
       });
       return response.data as UploadSignature;
     },
@@ -166,7 +165,7 @@ export function FundraiserForm({
       formData.append("api_key", signature.apiKey);
       formData.append("timestamp", signature.timestamp.toString());
       formData.append("signature", signature.signature);
-      formData.append("folder", "fundraisers");
+      formData.append("folder", "covers");
       formData.append("eager", "q_auto,f_auto");
       formData.append("use_filename", "true");
       formData.append("unique_filename", "true");
@@ -189,18 +188,15 @@ export function FundraiserForm({
         originalFilename: response.data.original_filename,
         uploadedAt: new Date().toISOString(),
       };
-    } catch {
-      console.error("Failed to upload file:", file.name);
+    } catch (error) {
+      console.error("Failed to upload file:", file.name, error);
       throw new Error(`Failed to upload ${file.name}`);
     }
   };
 
-  // Handle file selection
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  // Handle file upload
+  const handleFileUpload = useCallback(
+    async (file: File) => {
       if (!file.type.startsWith("image/")) {
         setLocalError("Please select an image file");
         return;
@@ -211,28 +207,71 @@ export function FundraiserForm({
       }
 
       setLocalError(null);
-
-      // Show preview immediately
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCoverImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Auto-upload to Cloudinary
       setIsUploading(true);
+
       try {
-        const uploadedAsset = await uploadToCloudinary(file);
-        setCoverImagePreview(uploadedAsset.eagerUrl || uploadedAsset.url); // Use eager URL for better performance
-        setValue("coverPublicId", uploadedAsset.publicId);
-      } catch {
-        setLocalError("Failed to upload image. Please try again.");
+        // Show preview immediately
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setCoverImagePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to Cloudinary
+        const asset = await uploadToCloudinary(file);
+        setCoverImagePreview(asset.eagerUrl || asset.url);
+        setCoverPublicId(asset.publicId);
+        setValue("coverPublicId", asset.publicId);
+        toast.success("Cover image uploaded successfully!");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Upload failed";
+        setLocalError(message);
         setCoverImagePreview(null);
+        toast.error(message);
       } finally {
         setIsUploading(false);
       }
-    }
-  };
+    },
+    [setValue]
+  );
+
+  // Handle file drop
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    },
+    [handleFileUpload]
+  );
+
+  // Handle file selection
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        handleFileUpload(file);
+      }
+      e.target.value = ""; // Reset input
+    },
+    [handleFileUpload]
+  );
+
+  // Handle drag events
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
 
   const internalSubmit = async (data: FundraiserFormData) => {
     setLocalError(null);
@@ -245,7 +284,7 @@ export function FundraiserForm({
 
     // Determine if we should remove the cover
     const shouldRemoveCover =
-      existingCoverUrl && !data.coverPublicId && !coverImagePreview;
+      existingCoverUrl && !data.coverPublicId && !coverPublicId;
 
     // If there's an existing cover but no new coverPublicId and we're not removing, keep the existing one
     let finalCoverPublicId = data.coverPublicId;
@@ -346,6 +385,7 @@ export function FundraiserForm({
           <Label>Cover Image</Label>
           <input type="hidden" {...register("coverPublicId")} />
           <input type="hidden" {...register("removeCover")} />
+
           {coverImagePreview ? (
             <div className="relative">
               <img
@@ -360,9 +400,9 @@ export function FundraiserForm({
                 className="absolute top-2 right-2"
                 onClick={() => {
                   setCoverImagePreview(null);
+                  setCoverPublicId(null);
                   setValue("coverPublicId", "");
-                  // If this was an existing cover, we need to signal to remove it
-                  if (existingCoverUrl && defaultValues?.coverPublicId) {
+                  if (existingCoverUrl) {
                     setValue("removeCover", true);
                   }
                 }}
@@ -371,25 +411,59 @@ export function FundraiserForm({
               </Button>
             </div>
           ) : (
-            <div className="border-2 border-dashed p-6 text-center rounded-lg">
-              <Upload className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading..." : "Choose Image"}
-              </Button>
-            </div>
+            <Card
+              className={`border-2 border-dashed transition-colors ${
+                isDragOver
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25"
+              }`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h4 className="text-lg font-medium mb-2">
+                    Upload Cover Image
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Drag and drop an image here, or click to browse
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Supported formats: JPG, PNG, GIF, WebP. Max 5MB.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      document.getElementById("cover-upload")?.click()
+                    }
+                    disabled={isUploading}
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Browse Files
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    id="cover-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
         </div>
       </div>
 
@@ -416,18 +490,8 @@ export function FundraiserForm({
 
       {/* Submit Button */}
       <div className="flex justify-end pt-4">
-        <Button
-          type="submit"
-          disabled={
-            loading ||
-            getUploadSignatureMutation.isPending ||
-            isUploading ||
-            !isValid
-          }
-        >
-          {loading || getUploadSignatureMutation.isPending || isUploading
-            ? "Saving..."
-            : submitLabel}
+        <Button type="submit" disabled={loading || !isValid}>
+          {loading ? "Saving..." : submitLabel}
         </Button>
       </div>
     </form>
