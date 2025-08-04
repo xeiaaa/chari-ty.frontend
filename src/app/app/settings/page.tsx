@@ -17,8 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -26,8 +24,6 @@ import {
   Shield,
   User,
   Building2,
-  Loader2,
-  Trash2,
   Image as ImageIcon,
 } from "lucide-react";
 import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialog";
@@ -36,6 +32,10 @@ import { toast } from "sonner";
 import { GroupGalleryForm } from "@/components/groups/group-gallery-form";
 import SkeletonLoader from "@/components/common/skeleton-loader";
 import PageHeader from "@/components/common/page-header";
+import AccountForm from "@/components/settings/account-form";
+import NotificationSettings from "@/components/settings/notification-settings";
+import DangerZone from "@/components/settings/danger-zone";
+import MemberList from "@/components/settings/member-list";
 
 enum SettingsTab {
   ACCOUNT = "account",
@@ -310,323 +310,38 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value={SettingsTab.ACCOUNT} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your{" "}
-                {selectedAccount.type === "individual"
-                  ? "personal"
-                  : selectedAccount.type === "team"
-                  ? "team"
-                  : "organization"}{" "}
-                information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {updateError && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                  <p className="text-sm text-destructive">
-                    {updateError instanceof Error
-                      ? updateError.message
-                      : "Failed to update settings"}
-                  </p>
-                </div>
-              )}
+          <AccountForm
+            accountType={selectedAccount.type}
+            formData={formData}
+            onInputChange={handleInputChange}
+            onSave={handleSaveChanges}
+            isUpdating={isUpdating}
+            error={updateError}
+          />
 
-              {/* Name field - required for team and nonprofit */}
-              {(selectedAccount.type === "team" ||
-                selectedAccount.type === "nonprofit") && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">
-                    {selectedAccount.type === "team"
-                      ? "Team Name"
-                      : "Organization Name"}
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder={
-                      selectedAccount.type === "team"
-                        ? "Enter your team name"
-                        : "Enter your organization name"
-                    }
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
-              {/* EIN field - required for nonprofit */}
-              {selectedAccount.type === "nonprofit" && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">
-                    EIN (Employer Identification Number)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="XX-XXXXXXX"
-                    value={formData.ein}
-                    onChange={(e) => handleInputChange("ein", e.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
-              {/* Mission field */}
-              <div className="grid gap-2">
-                <label className="text-sm font-medium">Mission</label>
-                <Textarea
-                  placeholder="What's your mission or purpose?"
-                  className="min-h-[100px]"
-                  value={formData.mission}
-                  onChange={(e) => handleInputChange("mission", e.target.value)}
-                />
-              </div>
-
-              {/* Website field */}
-              <div className="grid gap-2">
-                <label className="text-sm font-medium">Website</label>
-                <Input
-                  type="url"
-                  placeholder="https://..."
-                  value={formData.website}
-                  onChange={(e) => handleInputChange("website", e.target.value)}
-                />
-              </div>
-              <Button
-                onClick={handleSaveChanges}
-                disabled={isUpdating}
-                className="w-full sm:w-auto"
-              >
-                {isUpdating && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
-                Save Changes
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>
-                Manage your notification preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receive email updates about your account
-                  </p>
-                </div>
-                <div className="h-6 w-11 bg-muted rounded-full" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Marketing Emails</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receive emails about new features and updates
-                  </p>
-                </div>
-                <div className="h-6 w-11 bg-muted rounded-full" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-destructive/20 bg-destructive/5">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
-              <CardDescription>
-                Irreversible and destructive actions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="destructive">
-                Delete{" "}
-                {selectedAccount.type === "individual"
-                  ? "Account"
-                  : selectedAccount.type === "team"
-                  ? "Team"
-                  : "Organization"}
-              </Button>
-            </CardContent>
-          </Card>
+          <NotificationSettings />
+          <DangerZone accountType={selectedAccount.type} />
         </TabsContent>
 
         {shouldShowTeamMembersTab && (
           <TabsContent value={SettingsTab.MEMBERS} className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Members</CardTitle>
-                <CardDescription>
-                  Manage members of your{" "}
-                  {selectedAccount.type === "team" ? "team" : "organization"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {groupDetails?.members && groupDetails.members.length > 0 ? (
-                  groupDetails.members.map((member) => (
-                    <div
-                      key={member.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg ${
-                        currentUser &&
-                        member.user &&
-                        member.user.id === currentUser.id
-                          ? "bg-muted/50 border-primary/20"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
-                          {member.user?.avatarUrl ? (
-                            <img
-                              src={member.user.avatarUrl}
-                              alt={`${member.user.firstName} ${member.user.lastName}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <User className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">
-                              {member.user
-                                ? `${member.user.firstName} ${member.user.lastName}`
-                                : member.invitedName || "Unknown User"}
-                            </p>
-                            {/* Show "You" badge for current user */}
-                            {currentUser &&
-                              member.user &&
-                              member.user.id === currentUser.id && (
-                                <Badge variant="secondary" className="text-xs">
-                                  You
-                                </Badge>
-                              )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {member.user?.email ||
-                              member.invitedEmail ||
-                              "No email provided"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Joined:{" "}
-                            {new Date(member.joinedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            member.role === "owner"
-                              ? "default"
-                              : member.role === "admin"
-                              ? "secondary"
-                              : "outline"
-                          }
-                        >
-                          {member.role.charAt(0).toUpperCase() +
-                            member.role.slice(1)}
-                        </Badge>
-                        <Badge
-                          variant={
-                            member.status === "active"
-                              ? "default"
-                              : member.status === "invited"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                        >
-                          {member.status.charAt(0).toUpperCase() +
-                            member.status.slice(1)}
-                        </Badge>
-
-                        {/* Role management - only for owners and admins, and only for active members who are not the current user */}
-                        {(() => {
-                          const currentUserRole = getCurrentUserRole();
-                          const shouldShow =
-                            member.status === "active" &&
-                            member.user?.id !== currentUser?.id &&
-                            member.role !== "owner" &&
-                            (currentUserRole === "owner" ||
-                              currentUserRole === "admin");
-
-                          return shouldShow;
-                        })() && (
-                          <select
-                            value={member.role}
-                            onChange={(
-                              e: React.ChangeEvent<HTMLSelectElement>
-                            ) =>
-                              handleUpdateMemberRole(member.id, e.target.value)
-                            }
-                            disabled={isUpdatingRole}
-                            className="w-24 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm"
-                          >
-                            <option value="admin">Admin</option>
-                            <option value="editor">Editor</option>
-                            <option value="viewer">Viewer</option>
-                          </select>
-                        )}
-
-                        {/* Remove button - only for owners and admins, and only for active members who are not the current user */}
-                        {(() => {
-                          const currentUserRole = getCurrentUserRole();
-                          const shouldShow =
-                            member.status === "active" &&
-                            member.user?.id !== currentUser?.id &&
-                            member.role !== "owner" &&
-                            (currentUserRole === "owner" ||
-                              currentUserRole === "admin");
-
-                          return shouldShow;
-                        })() && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleRemoveMember(
-                                member.id,
-                                member.user
-                                  ? `${member.user.firstName} ${member.user.lastName}`
-                                  : member.invitedName || "Unknown User"
-                              )
-                            }
-                            disabled={isRemovingMember}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground mb-2">
-                      No members found
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Start by inviting team members to collaborate
-                    </p>
-                  </div>
-                )}
-                {/* Only show invite button for owners and admins */}
-                {(selectedAccount.role === "owner" ||
-                  selectedAccount.role === "admin") && (
-                  <Button
-                    className="w-full"
-                    onClick={() => setIsInviteDialogOpen(true)}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Invite New Member
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            {Array.isArray(groupDetails?.members) && (
+              <MemberList
+                members={groupDetails.members}
+                currentUserId={currentUser?.id}
+                currentUserRole={getCurrentUserRole() || undefined}
+                accountType={selectedAccount.type as "team" | "nonprofit"}
+                canInvite={
+                  selectedAccount.role === "owner" ||
+                  selectedAccount.role === "admin"
+                }
+                onUpdateRole={handleUpdateMemberRole}
+                onRemoveMember={handleRemoveMember}
+                onInviteMember={() => setIsInviteDialogOpen(true)}
+                isUpdatingRole={isUpdatingRole}
+                isRemovingMember={isRemovingMember}
+              />
+            )}
           </TabsContent>
         )}
 
