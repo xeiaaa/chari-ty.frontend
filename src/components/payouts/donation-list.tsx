@@ -18,11 +18,13 @@ interface Donation {
 interface DonationListProps {
   donations: Donation[];
   isLoading: boolean;
-  error: any;
+  error: unknown;
   viewMode: "card" | "table";
   formatCurrency: (amount: number, currency: string) => string;
   formatDate: (dateString: string) => string;
-  getStatusBadgeVariant: (status: string) => string;
+  getStatusBadgeVariant: (
+    status: string
+  ) => "default" | "destructive" | "outline" | "secondary";
 }
 
 const DonationList = ({

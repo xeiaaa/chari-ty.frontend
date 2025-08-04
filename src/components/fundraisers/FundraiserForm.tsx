@@ -10,7 +10,6 @@ import { FormField } from "@/components/ui/form-field";
 import { FormSelect } from "@/components/ui/form-select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { useApi } from "@/lib/api";
 import type { FormSelectOption } from "@/components/ui/form-select";
