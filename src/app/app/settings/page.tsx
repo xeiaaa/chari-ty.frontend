@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Users,
@@ -35,6 +34,8 @@ import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialo
 import { RemoveMemberDialog } from "@/components/ui/remove-member-dialog";
 import { toast } from "sonner";
 import { GroupGalleryForm } from "@/components/groups/group-gallery-form";
+import SkeletonLoader from "@/components/common/skeleton-loader";
+import PageHeader from "@/components/common/page-header";
 
 enum SettingsTab {
   ACCOUNT = "account",
@@ -235,30 +236,7 @@ export default function SettingsPage() {
     selectedAccount.type === "team" || selectedAccount.type === "nonprofit";
 
   if (isLoadingGroup) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Skeleton className="h-10 w-2/3 mb-1" />
-          <Skeleton className="h-6 w-1/2" />
-        </div>
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-6 w-1/4" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-6 w-1/3" />
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-6 w-1/4" />
-              <Skeleton className="h-10 w-full" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="card" />;
   }
 
   if (groupError) {
@@ -278,18 +256,16 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your{" "}
-          {selectedAccount.type === "individual"
+      <PageHeader
+        title="Settings"
+        message={`Manage your ${
+          selectedAccount.type === "individual"
             ? "account"
             : selectedAccount.type === "team"
             ? "team"
-            : "organization"}{" "}
-          settings and preferences
-        </p>
-      </div>
+            : "organization"
+        } settings and preferences`}
+      />
 
       <Tabs
         defaultValue={tab}
