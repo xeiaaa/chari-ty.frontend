@@ -11,10 +11,12 @@ const LoadingPage = ({
   message = "Loading...",
   size = "lg",
   className = "",
-  minHeight = "min-h-[400px]",
+  minHeight = "min-h-[calc(100vh-69px)]",
 }: LoadingPageProps) => {
   return (
-    <div className={`max-w-6xl mx-auto flex items-center justify-center ${minHeight} ${className}`}>
+    <div
+      className={`w-full flex items-center justify-center ${minHeight} ${className}`}
+    >
       <div className="text-center">
         <Spinner size={size} className="mx-auto mb-4" />
         <p className="text-muted-foreground">{message}</p>
@@ -23,4 +25,4 @@ const LoadingPage = ({
   );
 };
 
-export default LoadingPage; 
+export default LoadingPage;
