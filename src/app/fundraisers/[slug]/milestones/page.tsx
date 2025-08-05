@@ -11,7 +11,6 @@ import {
   formatDate,
   getDateParts,
 } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
@@ -30,6 +29,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import SkeletonLoader from "@/components/common/skeleton-loader";
 
 interface Fundraiser {
   id: string;
@@ -168,22 +168,7 @@ const MilestoneJourneyPage = () => {
   );
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-6xl mx-auto pt-8 px-4">
-          <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-            <Skeleton className="h-64 w-full" />
-            <div className="p-6 space-y-6">
-              <div className="space-y-4">
-                <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-32 w-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="card" />;
   }
 
   if (error) {

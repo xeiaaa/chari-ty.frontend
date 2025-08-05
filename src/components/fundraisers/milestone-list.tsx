@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,22 +8,8 @@ import * as z from "zod";
 import { Button } from "../ui/button";
 import { FormField } from "../ui/form-field";
 import { Skeleton } from "../ui/skeleton";
-import { Textarea } from "../ui/textarea";
-import { Card, CardContent } from "../ui/card";
 import { useApi } from "@/lib/api";
-import {
-  Target,
-  CheckCircle,
-  Plus,
-  Edit,
-  Trash2,
-  Upload,
-  Image as ImageIcon,
-  Edit3,
-  Save,
-  Loader2,
-  GripVertical,
-} from "lucide-react";
+import { Target, CheckCircle, Plus, Edit, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,14 +19,7 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import { Snackbar, useSnackbar } from "../ui/snackbar";
-import { toast } from "sonner";
-import axios from "axios";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+import { GalleryUpload, UploadType } from "@/components/ui/gallery-upload";
 
 // Schema for milestone completion form
 const completeMilestoneSchema = z.object({
@@ -95,14 +74,6 @@ interface MilestoneListProps {
   onDeleteMilestone?: (milestone: Milestone) => void;
 }
 
-// Upload signature response type
-interface UploadSignature {
-  signature: string;
-  timestamp: number;
-  apiKey: string;
-  cloudName: string;
-}
-
 export function MilestoneList({
   fundraiserId,
   currency,
@@ -116,148 +87,7 @@ export function MilestoneList({
   const [completingMilestone, setCompletingMilestone] =
     useState<Milestone | null>(null);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState<Map<string, boolean>>(
-    new Map()
-  );
-  const [filePreviews, setFilePreviews] = useState<Map<string, string>>(
-    new Map()
-  );
-  const [editingCaption, setEditingCaption] = useState<string | null>(null);
-  const [deletingUploadId, setDeletingUploadId] = useState<string | null>(null);
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
-
-  // Get upload signature mutation
-  const getUploadSignatureMutation = useMutation({
-    mutationFn: async () => {
-      const response = await api.post("/uploads/signature", {
-        folder: "milestone-proof",
-      });
-      return response.data as UploadSignature;
-    },
-  });
-
-  // Add milestone uploads mutation
-  const addMilestoneUploadsMutation = useMutation({
-    mutationFn: async ({
-      milestoneId,
-      items,
-    }: {
-      milestoneId: string;
-      items: { publicId: string; caption?: string }[];
-    }) => {
-      const payload = {
-        items: items.map((item) => ({
-          publicId: item.publicId,
-          caption: item.caption,
-        })),
-      };
-      const response = await api.post(
-        `/milestones/${milestoneId}/uploads`,
-        payload
-      );
-      return response.data;
-    },
-    onSuccess: (data) => {
-      // Optimistically update the local state with the new uploads
-      if (completingMilestone && data) {
-        const newUploads = Array.isArray(data) ? data : [data];
-        setCompletingMilestone({
-          ...completingMilestone,
-          milestoneUploads: [
-            ...(completingMilestone.milestoneUploads || []),
-            ...newUploads.map((upload, index) => ({
-              ...upload,
-              order:
-                (completingMilestone.milestoneUploads?.length || 0) + index,
-            })),
-          ],
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
-      toast.success("Uploads added successfully!");
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error ? error.message : "Failed to add uploads";
-      toast.error(message);
-    },
-  });
-
-  // Update milestone upload mutation
-  const updateMilestoneUploadMutation = useMutation({
-    mutationFn: async ({
-      milestoneId,
-      uploadItemId,
-      caption,
-    }: {
-      milestoneId: string;
-      uploadItemId: string;
-      caption?: string;
-    }) => {
-      const response = await api.patch(
-        `/milestones/${milestoneId}/uploads/${uploadItemId}`,
-        { caption }
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
-      toast.success("Upload updated successfully!");
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error ? error.message : "Failed to update upload";
-      toast.error(message);
-    },
-  });
-
-  // Delete milestone upload mutation
-  const deleteMilestoneUploadMutation = useMutation({
-    mutationFn: async ({
-      milestoneId,
-      uploadItemId,
-    }: {
-      milestoneId: string;
-      uploadItemId: string;
-    }) => {
-      await api.delete(`/milestones/${milestoneId}/uploads/${uploadItemId}`);
-    },
-    onSuccess: () => {
-      toast.success("Upload deleted successfully!");
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete upload";
-      toast.error(message);
-    },
-  });
-
-  // Reorder milestone uploads mutation
-  const reorderMilestoneUploadsMutation = useMutation({
-    mutationFn: async ({
-      milestoneId,
-      orderMap,
-    }: {
-      milestoneId: string;
-      orderMap: { milestoneUploadId: string; order: number }[];
-    }) => {
-      const response = await api.patch(
-        `/milestones/${milestoneId}/uploads/reorder`,
-        { orderMap }
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
-      toast.success("Upload order updated successfully!");
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error ? error.message : "Failed to reorder uploads";
-      toast.error(message);
-    },
-  });
 
   const completionForm = useForm<CompleteMilestoneForm>({
     resolver: zodResolver(completeMilestoneSchema),
@@ -326,294 +156,6 @@ export function MilestoneList({
     },
   });
 
-  // Upload file to Cloudinary
-  const uploadToCloudinary = async (file: File): Promise<CloudinaryAsset> => {
-    try {
-      // Get upload signature
-      const signature = await getUploadSignatureMutation.mutateAsync();
-
-      // Prepare form data
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", signature.apiKey);
-      formData.append("timestamp", signature.timestamp.toString());
-      formData.append("signature", signature.signature);
-      formData.append("folder", "milestone-proof");
-      formData.append("eager", "q_auto,f_auto");
-      formData.append("use_filename", "true");
-      formData.append("unique_filename", "true");
-
-      // Upload to Cloudinary
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
-      return {
-        cloudinaryAssetId: response.data.public_id,
-        publicId: response.data.public_id,
-        url: response.data.secure_url,
-        eagerUrl: response.data.eager?.[0]?.secure_url,
-        format: response.data.format,
-        resourceType: response.data.resource_type,
-        size: response.data.bytes,
-        originalFilename: response.data.original_filename,
-        uploadedAt: new Date().toISOString(),
-      };
-    } catch (error) {
-      console.error("Failed to upload file:", file.name, error);
-      throw new Error(`Failed to upload ${file.name}`);
-    }
-  };
-
-  // Handle file upload with specific fileId
-  const handleFileUploadWithId = useCallback(
-    async (file: File, fileId: string) => {
-      if (!completingMilestone) {
-        toast.error("Please open the completion dialog first");
-        return;
-      }
-
-      setUploadingFiles((prev) => new Map(prev).set(fileId, true));
-
-      try {
-        const asset = await uploadToCloudinary(file);
-
-        // Add to milestone uploads immediately using the new API
-        const response = await addMilestoneUploadsMutation.mutateAsync({
-          milestoneId: completingMilestone.id,
-          items: [
-            {
-              publicId: asset.publicId,
-              caption: "",
-            },
-          ],
-        });
-
-        console.log("Add milestone uploads response:", response);
-
-        // Remove preview after successful upload
-        setFilePreviews((prev) => {
-          const newMap = new Map(prev);
-          newMap.delete(fileId);
-          return newMap;
-        });
-        toast.success(`${file.name} uploaded successfully!`);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Upload failed";
-        toast.error(`${file.name}: ${message}`);
-      } finally {
-        setUploadingFiles((prev) => {
-          const newMap = new Map(prev);
-          newMap.delete(fileId);
-          return newMap;
-        });
-      }
-    },
-    [completingMilestone, addMilestoneUploadsMutation]
-  );
-
-  // Handle file upload (legacy function for drag and drop)
-  const handleFileUpload = useCallback(
-    async (file: File) => {
-      const fileId = `${file.name}-${Date.now()}`;
-      await handleFileUploadWithId(file, fileId);
-    },
-    [handleFileUploadWithId]
-  );
-
-  // Handle file drop
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragOver(false);
-
-      const files = Array.from(e.dataTransfer.files);
-      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-
-      if (imageFiles.length === 0) {
-        toast.error("Please drop image files only");
-        return;
-      }
-
-      // Validate file sizes
-      const oversizedFiles = imageFiles.filter(
-        (file) => file.size > 10 * 1024 * 1024
-      );
-      if (oversizedFiles.length > 0) {
-        toast.error(
-          `Files over 10MB: ${oversizedFiles.map((f) => f.name).join(", ")}`
-        );
-        return;
-      }
-
-      // Upload each file
-      imageFiles.forEach(handleFileUpload);
-    },
-    [handleFileUpload]
-  );
-
-  // Handle file selection
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const files = Array.from(e.target.files || []);
-      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-
-      if (imageFiles.length === 0) {
-        toast.error("Please select image files only");
-        return;
-      }
-
-      // Validate file sizes
-      const oversizedFiles = imageFiles.filter(
-        (file) => file.size > 10 * 1024 * 1024
-      );
-      if (oversizedFiles.length > 0) {
-        toast.error(
-          `Files over 10MB: ${oversizedFiles.map((f) => f.name).join(", ")}`
-        );
-        return;
-      }
-
-      // Create immediate previews and upload files
-      imageFiles.forEach((file) => {
-        const fileId = `${file.name}-${Date.now()}`;
-
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setFilePreviews((prev) =>
-            new Map(prev).set(fileId, e.target?.result as string)
-          );
-        };
-        reader.readAsDataURL(file);
-
-        // Upload file with the same fileId
-        handleFileUploadWithId(file, fileId);
-      });
-      e.target.value = ""; // Reset input
-    },
-    [handleFileUploadWithId]
-  );
-
-  // Handle drag events
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  }, []);
-
-  // Handle drag and drop reorder
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || !completingMilestone) return;
-
-    const fromIndex = result.source.index;
-    const toIndex = result.destination.index;
-
-    if (fromIndex === toIndex) return;
-
-    const uploads = completingMilestone.milestoneUploads || [];
-    const newItems = [...uploads];
-    const [movedItem] = newItems.splice(fromIndex, 1);
-    newItems.splice(toIndex, 0, movedItem);
-
-    // Update order numbers
-    const updatedItems = newItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-
-    // Optimistically update the UI immediately
-    setCompletingMilestone({
-      ...completingMilestone,
-      milestoneUploads: updatedItems,
-    });
-
-    // Prepare order map for the API
-    const orderMap = updatedItems.map((item, index) => ({
-      milestoneUploadId: item.id,
-      order: index,
-    }));
-
-    // Send the reorder request to the backend
-    reorderMilestoneUploadsMutation.mutate({
-      milestoneId: completingMilestone.id,
-      orderMap,
-    });
-  };
-
-  // Handle caption edit
-  const handleCaptionEdit = (uploadId: string, caption: string) => {
-    if (!completingMilestone) return;
-
-    setCompletingMilestone({
-      ...completingMilestone,
-      milestoneUploads: completingMilestone.milestoneUploads?.map((upload) =>
-        upload.id === uploadId ? { ...upload, caption } : upload
-      ),
-    });
-  };
-
-  // Handle caption save
-  const handleCaptionSave = (uploadId: string) => {
-    if (!completingMilestone) return;
-
-    const upload = completingMilestone.milestoneUploads?.find(
-      (u) => u.id === uploadId
-    );
-    if (upload) {
-      updateMilestoneUploadMutation.mutate({
-        milestoneId: completingMilestone.id,
-        uploadItemId: uploadId,
-        caption: upload.caption,
-      });
-    }
-    setEditingCaption(null);
-  };
-
-  // Handle upload delete
-  const handleUploadDelete = (uploadId: string) => {
-    if (!completingMilestone) return;
-
-    setDeletingUploadId(uploadId);
-
-    // Optimistically remove from local state for immediate UI feedback
-    setCompletingMilestone({
-      ...completingMilestone,
-      milestoneUploads: completingMilestone.milestoneUploads?.filter(
-        (upload) => upload.id !== uploadId
-      ),
-    });
-
-    deleteMilestoneUploadMutation.mutate(
-      {
-        milestoneId: completingMilestone.id,
-        uploadItemId: uploadId,
-      },
-      {
-        onSuccess: () => {
-          setDeletingUploadId(null);
-        },
-        onError: () => {
-          // Revert optimistic update on error
-          setDeletingUploadId(null);
-          queryClient.invalidateQueries({
-            queryKey: ["milestones", fundraiserId],
-          });
-        },
-      }
-    );
-  };
-
   const handleCompleteMilestone = (data: CompleteMilestoneForm) => {
     if (!completingMilestone) return;
 
@@ -626,8 +168,6 @@ export function MilestoneList({
   const openCompletionDialog = (milestone: Milestone) => {
     setCompletingMilestone(milestone);
     setCompletionDialogOpen(true);
-    setEditingCaption(null);
-    setDeletingUploadId(null);
     completionForm.reset({
       completionDetails: milestone.completionDetails || "",
     });
@@ -790,10 +330,6 @@ export function MilestoneList({
         open={completionDialogOpen}
         onOpenChange={(open) => {
           setCompletionDialogOpen(open);
-          if (!open) {
-            setEditingCaption(null);
-            setDeletingUploadId(null);
-          }
         }}
       >
         <DialogContent className="max-w-4xl max-h-[90vh]">
@@ -820,258 +356,36 @@ export function MilestoneList({
               rows={4}
             />
 
-            {/* Upload Area */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
+            {/* Proof Uploads */}
+            {completingMilestone && (
+              <div className="space-y-4">
+                <label className="block text-sm font-medium">
                   Upload Proof (Images)
                 </label>
-                <Card
-                  className={`border-2 border-dashed transition-colors ${
-                    isDragOver
-                      ? "border-primary bg-primary/5"
-                      : "border-muted-foreground/25"
-                  }`}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                >
-                  <CardContent className="p-6">
-                    <div className="text-center">
-                      <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                      <h4 className="text-base font-medium mb-2">
-                        Upload Images
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Drag and drop images here, or click to browse
-                      </p>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Supported formats: JPG, PNG, GIF, WebP. Max 10MB per
-                        file.
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          document
-                            .getElementById("milestone-proof-upload")
-                            ?.click();
-                        }}
-                      >
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Browse Files
-                      </Button>
-                      {uploadingFiles.size > 0 && (
-                        <div className="mt-3 p-2 bg-muted/50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            <span className="text-xs font-medium">
-                              Uploading {uploadingFiles.size} file
-                              {uploadingFiles.size > 1 ? "s" : ""}...
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            You can continue adding more files while these
-                            upload
-                          </p>
-                        </div>
-                      )}
-                      <input
-                        id="milestone-proof-upload"
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                <GalleryUpload
+                  type={UploadType.MILESTONE_PROOF}
+                  entityId={completingMilestone.id}
+                  existingItems={completingMilestone.milestoneUploads?.map(
+                    (upload) => ({
+                      id: upload.id,
+                      asset: upload.upload,
+                      caption: upload.caption,
+                      order: upload.order,
+                    })
+                  )}
+                  uploadEndpoint={`/milestones/${completingMilestone.id}/uploads`}
+                  updateEndpoint={`/milestones/${completingMilestone.id}/uploads/{id}`}
+                  deleteEndpoint={`/milestones/${completingMilestone.id}/uploads/{id}`}
+                  reorderEndpoint={`/milestones/${completingMilestone.id}/uploads/reorder`}
+                  queryKeys={["milestones", fundraiserId]}
+                  showDragDrop={true}
+                  showCaptions={true}
+                  showReorder={true}
+                  title="Proof Uploads"
+                  description="Upload images as proof of your milestone completion."
+                />
               </div>
-
-              {/* Proof Uploads */}
-              {(completingMilestone?.milestoneUploads &&
-                completingMilestone.milestoneUploads.length > 0) ||
-              uploadingFiles.size > 0 ? (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Proof Uploads</h4>
-                  <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId="milestone-uploads">
-                      {(provided) => (
-                        <div
-                          {...provided.droppableProps}
-                          ref={provided.innerRef}
-                          className="space-y-2"
-                        >
-                          {/* Existing Uploads */}
-                          {completingMilestone?.milestoneUploads
-                            ?.sort((a, b) => a.order - b.order)
-                            .map((upload, index) => (
-                              <Draggable
-                                key={upload.id}
-                                draggableId={upload.id}
-                                index={index}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    className={`flex items-center gap-3 p-3 border rounded-lg bg-card ${
-                                      snapshot.isDragging ? "shadow-lg" : ""
-                                    }`}
-                                  >
-                                    {/* Drag Handle */}
-                                    <div
-                                      {...provided.dragHandleProps}
-                                      className="flex-shrink-0 cursor-grab active:cursor-grabbing"
-                                    >
-                                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                    </div>
-
-                                    {/* Image Preview */}
-                                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                                      <img
-                                        src={
-                                          upload.upload.eagerUrl ||
-                                          upload.upload.url
-                                        }
-                                        alt={upload.upload.originalFilename}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    </div>
-
-                                    {/* Caption */}
-                                    <div className="flex-1 min-w-0">
-                                      {editingCaption === upload.id ? (
-                                        <div className="space-y-2">
-                                          <Textarea
-                                            value={upload.caption || ""}
-                                            onChange={(e) =>
-                                              handleCaptionEdit(
-                                                upload.id,
-                                                e.target.value
-                                              )
-                                            }
-                                            placeholder="Add a caption..."
-                                            className="min-h-[50px]"
-                                          />
-                                          <div className="flex gap-2">
-                                            <Button
-                                              size="sm"
-                                              onClick={() =>
-                                                handleCaptionSave(upload.id)
-                                              }
-                                              disabled={
-                                                updateMilestoneUploadMutation.isPending
-                                              }
-                                            >
-                                              {updateMilestoneUploadMutation.isPending ? (
-                                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                              ) : (
-                                                <Save className="h-3 w-3 mr-1" />
-                                              )}
-                                              Save
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() =>
-                                                setEditingCaption(null)
-                                              }
-                                            >
-                                              Cancel
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div className="space-y-1">
-                                          <p className="text-xs font-medium truncate">
-                                            {upload.upload.originalFilename}
-                                          </p>
-                                          <p className="text-xs text-muted-foreground">
-                                            {upload.caption || "No caption"}
-                                          </p>
-                                          <div className="flex items-center gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() =>
-                                                setEditingCaption(upload.id)
-                                              }
-                                            >
-                                              <Edit3 className="h-3 w-3" />
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    {/* Delete Button */}
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() =>
-                                        handleUploadDelete(upload.id)
-                                      }
-                                      disabled={deletingUploadId === upload.id}
-                                      className="text-destructive hover:text-destructive"
-                                    >
-                                      {deletingUploadId === upload.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Trash2 className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-
-                          {/* Uploading Files */}
-                          {Array.from(uploadingFiles.keys()).map((fileId) => {
-                            const preview = filePreviews.get(fileId);
-                            return (
-                              <div
-                                key={fileId}
-                                className="flex items-center gap-3 p-3 border rounded-lg bg-card"
-                              >
-                                {/* Image Preview */}
-                                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                                  {preview ? (
-                                    <img
-                                      src={preview}
-                                      alt="Uploading preview"
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <Skeleton className="w-full h-full" />
-                                  )}
-                                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                                    <Loader2 className="h-6 w-6 animate-spin" />
-                                  </div>
-                                </div>
-
-                                <div className="flex-1">
-                                  <p className="text-xs font-medium">
-                                    Uploading...
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {fileId.split("-")[0]} {/* Show filename */}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  </DragDropContext>
-                </div>
-              ) : null}
-            </div>
+            )}
 
             <DialogFooter>
               <Button
@@ -1079,8 +393,6 @@ export function MilestoneList({
                 variant="ghost"
                 onClick={() => {
                   setCompletionDialogOpen(false);
-                  setEditingCaption(null);
-                  setDeletingUploadId(null);
                 }}
               >
                 Cancel

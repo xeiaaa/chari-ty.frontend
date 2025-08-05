@@ -16,9 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import {
   Pagination,
   PaginationContent,
@@ -27,19 +25,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  CreditCard,
-  Link,
-  Unlink,
-  AlertCircle,
-  CheckCircle,
-  Receipt,
-  SortAsc,
-  SortDesc,
-  Grid3X3,
-  List,
-} from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CreditCard, Link, AlertCircle, Receipt } from "lucide-react";
+import SkeletonLoader from "@/components/common/skeleton-loader";
+import PageHeader from "@/components/common/page-header";
+import StripeConnectCard from "@/components/payouts/stripe-connect-card";
+import DonationFilters from "@/components/payouts/donation-filters";
+import DonationList from "@/components/payouts/donation-list";
+import DonationSummary from "@/components/payouts/donation-summary";
 
 enum PayoutTab {
   STRIPE = "stripe",
@@ -259,37 +251,16 @@ export default function PayoutsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-10 w-32" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="card" />;
   }
 
   if (error) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Donation Payouts</h1>
-          <p className="text-muted-foreground">
-            Connect your Stripe account to receive donations from your
-            fundraisers
-          </p>
-        </div>
+        <PageHeader
+          title="Donation Payouts"
+          message="Connect your Stripe account to receive donations from your fundraisers"
+        />
         <div className="space-y-6">
           <Card>
             <CardContent className="pt-6">
@@ -312,12 +283,10 @@ export default function PayoutsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Donation Payouts</h1>
-        <p className="text-muted-foreground">
-          Connect your Stripe account to receive donations from your fundraisers
-        </p>
-      </div>
+      <PageHeader
+        title="Donation Payouts"
+        message="Connect your Stripe account to receive donations from your fundraisers"
+      />
 
       <Tabs
         defaultValue={tab}
@@ -342,71 +311,14 @@ export default function PayoutsPage() {
         </TabsList>
 
         <TabsContent value={PayoutTab.STRIPE} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <CreditCard className="h-5 w-5" />
-                <CardTitle>Stripe Connect</CardTitle>
-                <Badge variant={isConnected ? "default" : "secondary"}>
-                  {isConnected ? "Connected" : "Not Connected"}
-                </Badge>
-              </div>
-              <CardDescription>
-                Connect your Stripe account to receive donations from your
-                fundraisers
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isConnected ? (
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2 text-green-600">
-                    <CheckCircle className="h-5 w-5" />
-                    <span>
-                      Your Stripe account is connected and ready to receive
-                      donations
-                    </span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <p>Stripe Account ID: {group.stripeId}</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={handleDisconnectStripe}
-                    disabled={disconnectStripeMutation.isPending}
-                    className="flex items-center space-x-2"
-                  >
-                    <Unlink className="h-4 w-4" />
-                    <span>
-                      {disconnectStripeMutation.isPending
-                        ? "Disconnecting..."
-                        : "Disconnect Stripe"}
-                    </span>
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2 text-amber-600">
-                    <AlertCircle className="h-5 w-5" />
-                    <span>
-                      Connect your Stripe account to start receiving donations
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    You need to connect your Stripe account to receive donations
-                    from your fundraisers. This will allow you to receive funds
-                    directly to your bank account.
-                  </p>
-                  <Button
-                    onClick={handleConnectStripe}
-                    className="flex items-center space-x-2"
-                  >
-                    <Link className="h-4 w-4" />
-                    <span>Connect Stripe</span>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <StripeConnectCard
+            isConnected={isConnected}
+            stripeId={group?.stripeId || undefined}
+            onConnect={handleConnectStripe}
+            onDisconnect={handleDisconnectStripe}
+            isConnecting={connectStripeMutation.isPending}
+            isDisconnecting={disconnectStripeMutation.isPending}
+          />
         </TabsContent>
 
         <TabsContent value={PayoutTab.DONATIONS} className="space-y-6">
@@ -424,350 +336,38 @@ export default function PayoutsPage() {
             <CardContent>
               {/* Summary */}
               {donationsData?.meta && (
-                <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Total Donations
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {donationsData.meta.total}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Total Amount
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {formatCurrency(
-                          Number(donationsData.meta.totalAmount),
-                          "USD"
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Completed</p>
-                      <p className="text-2xl font-bold">
-                        {donationsData.items?.filter(
-                          (d: { status: string }) => d.status === "completed"
-                        ).length || 0}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <DonationSummary
+                  meta={donationsData.meta}
+                  completedCount={
+                    donationsData.items?.filter(
+                      (d: { status: string }) => d.status === "completed"
+                    ).length || 0
+                  }
+                  formatCurrency={formatCurrency}
+                />
               )}
 
               {isConnected ? (
                 <div className="space-y-6">
                   {/* Filters and View Toggle */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="status-filter">Status</Label>
-                        <select
-                          id="status-filter"
-                          value={donationFilters.status}
-                          onChange={(e) =>
-                            handleFilterChange("status", e.target.value)
-                          }
-                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        >
-                          <option value="">All statuses</option>
-                          <option value="completed">Completed</option>
-                          <option value="pending">Pending</option>
-                          <option value="failed">Failed</option>
-                          <option value="refunded">Refunded</option>
-                        </select>
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="anonymous-filter">Anonymous</Label>
-                        <select
-                          id="anonymous-filter"
-                          value={donationFilters.isAnonymous}
-                          onChange={(e) =>
-                            handleFilterChange("isAnonymous", e.target.value)
-                          }
-                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        >
-                          <option value="">All donations</option>
-                          <option value="true">Anonymous only</option>
-                          <option value="false">Named only</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-end space-x-2">
-                        <div className="flex-1 flex flex-col gap-2">
-                          <Label htmlFor="sort-by">Sort by</Label>
-                          <select
-                            id="sort-by"
-                            value={donationFilters.sortBy}
-                            onChange={(e) =>
-                              handleFilterChange("sortBy", e.target.value)
-                            }
-                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                          >
-                            <option value="createdAt">Date</option>
-                            <option value="amount">Amount</option>
-                            <option value="status">Status</option>
-                            <option value="name">Name</option>
-                          </select>
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleFilterChange(
-                              "sortOrder",
-                              donationFilters.sortOrder === "asc"
-                                ? "desc"
-                                : "asc"
-                            )
-                          }
-                          className="h-9 px-3"
-                        >
-                          {donationFilters.sortOrder === "asc" ? (
-                            <SortAsc className="h-4 w-4" />
-                          ) : (
-                            <SortDesc className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Results Info and Items Per Page and View Toggle */}
-                    {donationsData?.meta && (
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
-                          Showing{" "}
-                          {(donationFilters.page - 1) * donationFilters.limit +
-                            1}{" "}
-                          to{" "}
-                          {Math.min(
-                            donationFilters.page * donationFilters.limit,
-                            donationsData.meta.total
-                          )}{" "}
-                          of {donationsData.meta.total} donations
-                        </div>
-
-                        <div className="flex flex-row gap-4">
-                          <div className="flex items-center space-x-2">
-                            <Label
-                              htmlFor="per-page-filter"
-                              className="text-sm"
-                            >
-                              Items per page:
-                            </Label>
-                            <select
-                              id="per-page-filter"
-                              value={donationFilters.limit}
-                              onChange={(e) =>
-                                handleFilterChange("limit", e.target.value)
-                              }
-                              className="flex h-8 w-16 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            >
-                              <option value={10}>10</option>
-                              <option value={20}>20</option>
-                              <option value={50}>50</option>
-                              <option value={100}>100</option>
-                            </select>
-                          </div>
-
-                          {/* View Toggle */}
-                          <div className="flex items-center justify-end">
-                            <div className="flex items-center space-x-2">
-                              <Label htmlFor="view-toggle" className="text-sm">
-                                View:
-                              </Label>
-                              <div className="flex border rounded-md">
-                                <Button
-                                  variant={
-                                    viewMode === "card" ? "default" : "ghost"
-                                  }
-                                  size="sm"
-                                  onClick={() => setViewMode("card")}
-                                  className="rounded-r-none border-r"
-                                >
-                                  <Grid3X3 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant={
-                                    viewMode === "table" ? "default" : "ghost"
-                                  }
-                                  size="sm"
-                                  onClick={() => setViewMode("table")}
-                                  className="rounded-l-none"
-                                >
-                                  <List className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <DonationFilters
+                    filters={donationFilters}
+                    onFilterChange={handleFilterChange}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    meta={donationsData?.meta}
+                  />
 
                   {/* Donations List */}
-                  {isLoadingDonations ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="border rounded-lg p-4">
-                          <Skeleton className="h-4 w-32 mb-2" />
-                          <Skeleton className="h-6 w-24 mb-2" />
-                          <Skeleton className="h-4 w-48" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : donationsError ? (
-                    <div className="text-center py-8">
-                      <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                      <p className="text-destructive">
-                        Failed to load donations
-                      </p>
-                    </div>
-                  ) : donationsData?.items?.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Receipt className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">
-                        No donations found
-                      </p>
-                    </div>
-                  ) : viewMode === "card" ? (
-                    <div className="space-y-4">
-                      {donationsData?.items?.map(
-                        (donation: {
-                          id: string;
-                          amount: string;
-                          currency: string;
-                          status: string;
-                          isAnonymous: boolean;
-                          name?: string;
-                          message?: string;
-                          createdAt: string;
-                          fundraiser?: { title: string };
-                          sourceLink?: { alias: string };
-                        }) => (
-                          <div
-                            key={donation.id}
-                            className="border rounded-lg p-4"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium">
-                                  {donation.isAnonymous
-                                    ? "Anonymous"
-                                    : donation.name || "Unknown"}
-                                </span>
-                                <Badge
-                                  variant={getStatusBadgeVariant(
-                                    donation.status
-                                  )}
-                                >
-                                  {donation.status}
-                                </Badge>
-                              </div>
-                              <span className="font-semibold text-lg">
-                                {formatCurrency(
-                                  Number(donation.amount),
-                                  donation.currency
-                                )}
-                              </span>
-                            </div>
-
-                            <div className="text-sm text-muted-foreground space-y-1">
-                              <p>Fundraiser: {donation.fundraiser?.title}</p>
-                              <p>Date: {formatDate(donation.createdAt)}</p>
-                              {donation.message && (
-                                <p className="italic">
-                                  &ldquo;{donation.message}&rdquo;
-                                </p>
-                              )}
-                              {donation.sourceLink && (
-                                <p>Source: {donation.sourceLink.alias}</p>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <div className="border rounded-lg overflow-hidden">
-                      <table className="w-full">
-                        <thead className="bg-muted/50">
-                          <tr>
-                            <th className="text-left p-3 font-medium">Donor</th>
-                            <th className="text-left p-3 font-medium">
-                              Amount
-                            </th>
-                            <th className="text-left p-3 font-medium">
-                              Status
-                            </th>
-                            <th className="text-left p-3 font-medium">
-                              Fundraiser
-                            </th>
-                            <th className="text-left p-3 font-medium">Date</th>
-                            <th className="text-left p-3 font-medium">
-                              Source
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {donationsData?.items?.map(
-                            (donation: {
-                              id: string;
-                              amount: string;
-                              currency: string;
-                              status: string;
-                              isAnonymous: boolean;
-                              name?: string;
-                              message?: string;
-                              createdAt: string;
-                              fundraiser?: { title: string };
-                              sourceLink?: { alias: string };
-                            }) => (
-                              <tr key={donation.id} className="border-t">
-                                <td className="p-3">
-                                  <span className="font-medium">
-                                    {donation.isAnonymous
-                                      ? "Anonymous"
-                                      : donation.name || "Unknown"}
-                                  </span>
-                                </td>
-                                <td className="p-3">
-                                  <span className="font-semibold">
-                                    {formatCurrency(
-                                      Number(donation.amount),
-                                      donation.currency
-                                    )}
-                                  </span>
-                                </td>
-                                <td className="p-3">
-                                  <Badge
-                                    variant={getStatusBadgeVariant(
-                                      donation.status
-                                    )}
-                                  >
-                                    {donation.status}
-                                  </Badge>
-                                </td>
-                                <td className="p-3 text-sm text-muted-foreground">
-                                  {donation.fundraiser?.title}
-                                </td>
-                                <td className="p-3 text-sm text-muted-foreground">
-                                  {formatDate(donation.createdAt)}
-                                </td>
-                                <td className="p-3 text-sm text-muted-foreground">
-                                  {donation.sourceLink?.alias || "-"}
-                                </td>
-                              </tr>
-                            )
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                  <DonationList
+                    donations={donationsData?.items || []}
+                    isLoading={isLoadingDonations}
+                    error={donationsError}
+                    viewMode={viewMode}
+                    formatCurrency={formatCurrency}
+                    formatDate={formatDate}
+                    getStatusBadgeVariant={getStatusBadgeVariant}
+                  />
 
                   {/* Pagination */}
                   {donationsData?.meta && donationsData.meta.totalPages > 1 && (

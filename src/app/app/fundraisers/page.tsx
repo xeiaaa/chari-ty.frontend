@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useAccount } from "@/contexts/account-context";
 import { useApi } from "@/lib/api";
+import SkeletonLoader from "@/components/common/skeleton-loader";
+import PageHeader from "@/components/common/page-header";
 
 interface Fundraiser {
   id: string;
@@ -95,12 +96,10 @@ export default function FundraisersPage() {
   if (error) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Fundraisers</h1>
-          <p className="text-muted-foreground">
-            Manage your fundraising campaigns
-          </p>
-        </div>
+        <PageHeader
+          title="Fundraisers"
+          message="Manage your fundraising campaigns"
+        />
         <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           <div className="text-center py-8">
             <p className="text-destructive">Failed to load fundraisers</p>
@@ -117,14 +116,14 @@ export default function FundraisersPage() {
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold mb-1">Fundraisers</h1>
-            <p className="text-muted-foreground">
-              {isPersonalAccount
+          <PageHeader
+            title="Fundraisers"
+            message={
+              isPersonalAccount
                 ? "Your personal fundraisers"
-                : `${selectedAccount.name} fundraisers`}
-            </p>
-          </div>
+                : `${selectedAccount.name} fundraisers`
+            }
+          />
           <Link href="/app/fundraisers/create">
             <Button>Create Fundraiser</Button>
           </Link>
@@ -133,28 +132,7 @@ export default function FundraisersPage() {
 
       <div className="space-y-6">
         {isLoading ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="bg-card border border-border rounded-lg shadow-sm overflow-hidden"
-                >
-                  <Skeleton className="h-48 w-full" />
-                  <div className="p-4">
-                    <div className="space-y-2 mb-4">
-                      <Skeleton className="h-6 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton className="h-2 w-full" />
-                      <Skeleton className="h-2 w-4/5" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SkeletonLoader variant="list" />
         ) : !data?.items?.length ? (
           <div className="bg-card border border-border rounded-lg shadow-sm p-6">
             <div className="text-center py-12">

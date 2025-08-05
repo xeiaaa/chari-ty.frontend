@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -36,6 +35,7 @@ import {
 } from "@/components/fundraisers/link-form";
 import { LinkList } from "@/components/fundraisers/link-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
+import SkeletonLoader from "@/components/common/skeleton-loader";
 
 export interface Fundraiser {
   id: string;
@@ -236,28 +236,7 @@ export default function FundraiserDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center gap-4">
-            <Link href="/app/fundraisers">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Fundraisers
-              </Button>
-            </Link>
-          </div>
-        </div>
-        <div className="space-y-6">
-          <Skeleton className="h-64 w-full" />
-          <div className="space-y-4">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-6 w-1/2" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="list" />;
   }
 
   if (!fundraiser) {
