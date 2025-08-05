@@ -10,7 +10,6 @@ import {
   formatCategory,
   formatDate,
 } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
@@ -28,6 +27,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Fundraiser {
   id: string;

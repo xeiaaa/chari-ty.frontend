@@ -3,8 +3,10 @@
 import { useUser } from "@/lib/hooks/use-user";
 import { useAccount } from "@/contexts/account-context";
 import { useDashboard } from "@/lib/hooks/use-dashboard";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/dashboard/stat-card";
+import PageHeader from "@/components/common/page-header";
+import SkeletonLoader from "@/components/common/skeleton-loader";
 import {
   Trophy,
   Users,
@@ -13,6 +15,7 @@ import {
   Target,
   UserPlus,
   Gift,
+  BarChart3,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -51,24 +54,7 @@ export default function DashboardPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Skeleton className="h-10 w-2/3 mb-4" />
-          <Skeleton className="h-6 w-1/2 mb-6" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-lg" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-96 rounded-lg" />
-          <Skeleton className="h-96 rounded-lg" />
-          <Skeleton className="h-96 rounded-lg" />
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="dashboard" />;
   }
 
   if (!user) {
@@ -79,14 +65,10 @@ export default function DashboardPage() {
   if (!selectedAccount) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">
-            Welcome, {user.firstName}!
-          </h1>
-          <p className="text-muted-foreground">
-            No account selected. Please select an account to view the dashboard.
-          </p>
-        </div>
+        <PageHeader
+          title="Dashboard"
+          message="No account selected. Please select an account to view the dashboard."
+        />
       </div>
     );
   }
@@ -94,15 +76,10 @@ export default function DashboardPage() {
   if (dashboardError) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">
-            Welcome, {user.firstName}!
-          </h1>
-          <p className="text-muted-foreground text-red-500">
-            Error loading {selectedAccount.name}&apos;s dashboard data. Please
-            try again later.
-          </p>
-        </div>
+        <PageHeader
+          title="Dashboard"
+          message={`Error loading ${selectedAccount.name}'s dashboard data. Please try again later.`}
+        />
       </div>
     );
   }
@@ -110,27 +87,20 @@ export default function DashboardPage() {
   if (!dashboardData) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">
-            Welcome, {user.firstName}!
-          </h1>
-          <p className="text-muted-foreground">
-            Loading {selectedAccount.name}&apos;s dashboard data...
-          </p>
-        </div>
+        <PageHeader
+          title={`Welcome, ${selectedAccount.name}!`}
+          message={`Loading ${selectedAccount.name}'s dashboard data...`}
+        />
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Welcome, {user.firstName}!</h1>
-        <p className="text-muted-foreground">
-          Here&apos;s an overview of {selectedAccount.name}&apos;s fundraising
-          activity
-        </p>
-      </div>
+      <PageHeader
+        title={`Welcome, ${selectedAccount.name}!`}
+        message={`Here's an overview of ${selectedAccount.name}'s fundraising activity`}
+      />
 
       {/* Fundraising Overview */}
       <div className="mb-8">
@@ -139,72 +109,35 @@ export default function DashboardPage() {
           Fundraising Overview
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="justify-between">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Fundraisers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dashboardData.fundraising.activeFundraisers}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Published campaigns
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Active Fundraisers"
+            value={dashboardData.fundraising.activeFundraisers}
+            description="Published campaigns"
+            icon={<Target className="w-5 h-5 text-blue-500" />}
+          />
 
-          <Card className="justify-between">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Raised
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(dashboardData.fundraising.totalRaised)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Across all fundraisers
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Raised"
+            value={formatCurrency(dashboardData.fundraising.totalRaised)}
+            description="Across all fundraisers"
+            icon={<Gift className="w-5 h-5 text-green-500" />}
+          />
 
-          <Card className="justify-between">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Goal Completion Rate
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dashboardData.fundraising.goalCompletionRate.completed} of{" "}
-                {dashboardData.fundraising.goalCompletionRate.total}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Campaigns hit their goal
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Goal Completion Rate"
+            value={`${dashboardData.fundraising.goalCompletionRate.completed} of ${dashboardData.fundraising.goalCompletionRate.total}`}
+            description="Campaigns hit their goal"
+            icon={<BarChart3 className="w-5 h-5 text-purple-500" />}
+          />
 
-          <Card className="justify-between">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Avg Donation per Fundraiser
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(
-                  dashboardData.fundraising.avgDonationPerFundraiser
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Average per campaign
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Avg Donation per Fundraiser"
+            value={formatCurrency(
+              dashboardData.fundraising.avgDonationPerFundraiser
+            )}
+            description="Average per campaign"
+            icon={<BarChart3 className="w-5 h-5 text-purple-500" />}
+          />
         </div>
       </div>
 
@@ -215,51 +148,109 @@ export default function DashboardPage() {
           Team Overview
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Team Members
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dashboardData.team.members}
-              </div>
-              <p className="text-xs text-muted-foreground">Current members</p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Team Members"
+            value={dashboardData.team.members}
+            description="Current members"
+            icon={<Users className="w-5 h-5 text-blue-500" />}
+          />
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Pending Invitations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dashboardData.team.pendingInvitations}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Outstanding invites
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Pending Invitations"
+            value={dashboardData.team.pendingInvitations}
+            description="Outstanding invites"
+            icon={<UserPlus className="w-5 h-5 text-purple-500" />}
+          />
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Last Member Joined
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-semibold">
-                {dashboardData.team.lastMemberJoined.name}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {dashboardData.team.lastMemberJoined.date}
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Last Member Joined"
+            value={`${dashboardData.team.lastMemberJoined.name} (${dashboardData.team.lastMemberJoined.date})`}
+            description="Last member joined"
+            icon={<Calendar className="w-5 h-5 text-gray-500" />}
+          />
+        </div>
+      </div>
+
+      {/* Fundraiser Link Stats */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-purple-500" />
+          Fundraiser Link Stats
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Traffic Sources"
+            value={dashboardData?.linkStats?.totalTrafficSources || 0}
+            description="Links created"
+            icon={<BarChart3 className="w-5 h-5 text-purple-500" />}
+          />
+
+          <StatCard
+            title="Donations from Shared Links"
+            value={`${formatCurrency(
+              dashboardData?.linkStats?.donationsFromSharedLinks || 0
+            )} (${
+              dashboardData?.linkStats?.percentageFromSharedLinks || 0
+            }% of total)`}
+            description="Donations from shared links"
+            icon={<Gift className="w-5 h-5 text-green-500" />}
+          />
+
+          <StatCard
+            title="Avg. Donation per Link"
+            value={formatCurrency(
+              dashboardData?.linkStats?.avgDonationPerLink || 0
+            )}
+            description="Average per traffic source"
+            icon={<BarChart3 className="w-5 h-5 text-purple-500" />}
+          />
+
+          <StatCard
+            title="Top Performing Link"
+            value={`${
+              dashboardData?.linkStats?.topPerformingLink?.alias || "No links"
+            } (${
+              dashboardData?.linkStats?.topPerformingLink?.fundraiser ||
+              "No fundraisers"
+            })`}
+            description="Top performing link"
+            icon={<TrendingUp className="w-5 h-5 text-orange-500" />}
+          />
+        </div>
+      </div>
+
+      {/* Engagement Insights */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-green-500" />
+          Engagement Insights
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StatCard
+            title="Most Shared Fundraiser"
+            value={`${
+              dashboardData?.engagementInsights?.mostSharedFundraiser?.name ||
+              "No fundraisers"
+            } (${
+              dashboardData?.engagementInsights?.mostSharedFundraiser
+                ?.shareCount || 0
+            } shares)`}
+            description="Most shared fundraiser"
+            icon={<BarChart3 className="w-5 h-5 text-green-500" />}
+          />
+
+          <StatCard
+            title="Member with Most Shared Links"
+            value={`${
+              dashboardData?.engagementInsights?.memberWithMostLinks?.name ||
+              "No members"
+            } (${
+              dashboardData?.engagementInsights?.memberWithMostLinks
+                ?.linkCount || 0
+            } links)`}
+            description="Member with most shared links"
+            icon={<Users className="w-5 h-5 text-blue-500" />}
+          />
         </div>
       </div>
 
