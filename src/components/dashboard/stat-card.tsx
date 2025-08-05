@@ -111,13 +111,25 @@ export function StatCard({
   );
 
   return (
-    <Card className={cardClasses}>
-      <CardHeader className={cn("pb-2", variant === "compact" && "pb-1")}>
+    <Card className={cn(cardClasses, "flex flex-col h-full")}>
+      <CardHeader
+        className={cn("pb-2 min-h-12", variant === "compact" && "pb-1")}
+      >
         {renderTitle()}
       </CardHeader>
-      <CardContent className={contentClasses}>
+      <CardContent
+        className={cn(
+          contentClasses,
+          "flex-1 flex flex-col justify-between gap-5"
+        )}
+      >
         <div className={valueClassName}>{value}</div>
-        {description && <p className={descriptionClassName}>{description}</p>}
+
+        {description && (
+          <div className="mt-auto">
+            <p className={descriptionClassName}>{description}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
