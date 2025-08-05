@@ -11,7 +11,7 @@ export function PublicHeader() {
     <header className="flex items-center justify-between px-8 py-4 border-b border-border">
       <Link
         href="/"
-        className="text-2xl font-bold tracking-wider hover:opacity-80 transition-opacity"
+        className="text-2xl font-bold tracking-wider hover:opacity-80 transition-opacity bg-gradient-to-b from-blue-300 to-blue-800 bg-clip-text text-transparent"
       >
         Chari-ty
       </Link>
@@ -20,7 +20,7 @@ export function PublicHeader() {
           {pathname !== "/onboarding" && (
             <Link
               href="/app/dashboard"
-              className="px-4 py-2 rounded-md hover:bg-muted transition-colors"
+              className="px-4 py-2 text-sm font-bold rounded-md hover:bg-muted transition-colors"
             >
               Dashboard
             </Link>

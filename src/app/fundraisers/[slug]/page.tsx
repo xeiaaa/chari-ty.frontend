@@ -41,6 +41,9 @@ interface Fundraiser {
     progressPercentage: number;
   };
   milestones: PublicTimelineMilestone[];
+  cover: {
+    eagerUrl: string;
+  };
 }
 
 export default function PublicFundraiserPage() {
@@ -202,7 +205,7 @@ export default function PublicFundraiserPage() {
           {/* Cover Image */}
           <div className="h-64 bg-muted relative">
             <img
-              src={fundraiser.coverUrl}
+              src={fundraiser.cover?.eagerUrl}
               alt={fundraiser.title}
               className="w-full h-full object-cover"
               onError={(e) => {
