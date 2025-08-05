@@ -37,6 +37,9 @@ interface Fundraiser {
     description: string;
     slug: string;
   };
+  cover?: {
+    eagerUrl: string;
+  };
 }
 
 interface RecentFundraisersProps {
@@ -154,9 +157,9 @@ export const RecentFundraisers = ({ limit = 6 }: RecentFundraisersProps) => {
               className="bg-muted/50 border border-border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
             >
               <div className="h-48 bg-muted relative">
-                {fundraiser.coverUrl ? (
+                {fundraiser.cover?.eagerUrl ? (
                   <img
-                    src={fundraiser.coverUrl}
+                    src={fundraiser.cover?.eagerUrl}
                     alt={fundraiser.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
