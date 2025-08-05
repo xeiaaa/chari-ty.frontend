@@ -7,9 +7,10 @@ import { useAccount } from "@/contexts/account-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Users, User, Check } from "lucide-react";
 import { toast } from "sonner";
+import SkeletonLoader from "@/components/common/skeleton-loader";
+import PageHeader from "@/components/common/page-header";
 
 export default function InvitationsPage() {
   const router = useRouter();
@@ -43,40 +44,16 @@ export default function InvitationsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Invitations</h1>
-          <p className="text-muted-foreground">
-            Manage your pending invitations
-          </p>
-        </div>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="card" />;
   }
 
   if (error) {
     return (
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-1">Invitations</h1>
-          <p className="text-muted-foreground">
-            Manage your pending invitations
-          </p>
-        </div>
+        <PageHeader
+          title="Invitations"
+          message="Manage your pending invitations"
+        />
         <div className="space-y-4">
           <Card>
             <CardContent className="pt-6">
@@ -92,10 +69,10 @@ export default function InvitationsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Invitations</h1>
-        <p className="text-muted-foreground">Manage your pending invitations</p>
-      </div>
+      <PageHeader
+        title="Invitations"
+        message="Manage your pending invitations"
+      />
 
       <div className="space-y-4">
         {invitations && invitations.length > 0 ? (

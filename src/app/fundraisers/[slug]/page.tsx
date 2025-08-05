@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { DonationDialog } from "@/components/ui/donation-dialog";
 import { api, formatCategory, formatCurrency, formatDate } from "@/lib/utils";
 import { Calendar, Globe, Users, Share2, Heart } from "lucide-react";
@@ -15,6 +14,7 @@ import {
 } from "@/components/fundraisers/public-timeline-milestone-list";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useLocalStorage } from "@/lib/hooks/use-local-storage";
+import SkeletonLoader from "@/components/common/skeleton-loader";
 
 interface Fundraiser {
   id: string;
@@ -41,7 +41,7 @@ interface Fundraiser {
     progressPercentage: number;
   };
   milestones: PublicTimelineMilestone[];
-  cover: {
+  cover?: {
     eagerUrl: string;
   };
 }
@@ -80,6 +80,8 @@ export default function PublicFundraiserPage() {
       return response.data;
     },
   });
+
+  console.log({ fundraiser });
 
   // Check for donation status in URL parameters
   useEffect(() => {
@@ -134,22 +136,7 @@ export default function PublicFundraiserPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-6xl mx-auto pt-8 px-4">
-          <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-            <Skeleton className="h-64 w-full" />
-            <div className="p-6 space-y-6">
-              <div className="space-y-4">
-                <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-32 w-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader variant="card" />;
   }
 
   if (!fundraiser) {
