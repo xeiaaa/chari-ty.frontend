@@ -2,7 +2,7 @@
 
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
-import { getDateParts, formatAchievedTime } from "@/lib/utils";
+import { getDateParts, formatAchievedDateTime } from "@/lib/utils";
 
 export interface PublicTimelineMilestone {
   id: string;
@@ -15,6 +15,15 @@ export interface PublicTimelineMilestone {
   amount: string;
   proofUrls: string[];
   completionDetails: string;
+  milestoneUploads: {
+    id: string;
+    url: string;
+    caption: string;
+    order: number;
+    upload: {
+      eagerUrl: string;
+    };
+  }[];
 }
 
 interface PublicTimelineMilestoneListProps {
@@ -24,6 +33,11 @@ interface PublicTimelineMilestoneListProps {
 export function PublicTimelineMilestoneList({
   milestones,
 }: PublicTimelineMilestoneListProps) {
+  // Find the last achieved milestone index
+  const lastAchievedIndex = milestones.findLastIndex(
+    (milestone) => milestone.achieved
+  );
+
   const renderMilestoneCard = (milestone: PublicTimelineMilestone) => (
     <div className="timeline-card w-full flex flex-row gap-4">
       <div className="flex mb-2">
@@ -61,7 +75,7 @@ export function PublicTimelineMilestoneList({
           </div>
           {milestone.achieved && milestone.achievedAt && (
             <div className="text-xs text-muted-foreground">
-              Achieved at {formatAchievedTime(milestone.achievedAt)}
+              Achieved at {formatAchievedDateTime(milestone.achievedAt)}
             </div>
           )}
         </div>
@@ -78,8 +92,16 @@ export function PublicTimelineMilestoneList({
 
   return (
     <div className="timeline-root relative py-8">
-      {/* Vertical line */}
+      {/* Vertical line with green progress */}
       <div className="timeline-line" />
+      {lastAchievedIndex >= 0 && (
+        <div
+          className="absolute top-0 left-1/2 w-0.5 bg-green-500 transform -translate-x-1/2 z-0"
+          style={{
+            height: `${((lastAchievedIndex + 1) / milestones.length) * 100}%`,
+          }}
+        />
+      )}
       <div className="timeline-list">
         {/* Mobile: single column, Card -> Dot (except last) -> Card ... */}
         <div className="block sm:hidden">
@@ -98,11 +120,11 @@ export function PublicTimelineMilestoneList({
                         : ""
                     }`}
                   >
-                    <div
-                      className={`timeline-dot-inner ${
-                        milestone.achieved ? "bg-green-500" : ""
-                      }`}
-                    />
+                    {milestone.achieved ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <div className="timeline-dot-inner" />
+                    )}
                   </div>
                 </div>
               )}
@@ -138,11 +160,11 @@ export function PublicTimelineMilestoneList({
                           : ""
                       }`}
                     >
-                      <div
-                        className={`timeline-dot-inner ${
-                          milestone.achieved ? "bg-green-500" : ""
-                        }`}
-                      />
+                      {milestone.achieved ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <div className="timeline-dot-inner" />
+                      )}
                     </div>
                   </div>
                 </div>

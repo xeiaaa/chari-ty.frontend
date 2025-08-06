@@ -12,10 +12,15 @@ export function PublicHeader() {
     <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-white/95 backdrop-blur-sm">
       <Link
         href="/"
-        className="flex items-center gap-2 text-2xl font-bold tracking-wider hover:opacity-80 transition-opacity bg-gradient-to-b from-blue-300 to-blue-800 bg-clip-text text-transparent"
+        className="flex items-center gap-2 text-2xl font-bold tracking-wider hover:opacity-80 transition-opacity"
       >
         <Heart className="w-6 h-6 text-red-500" />
-        Chari-ty
+        <p className="bg-gradient-to-b from-blue-300 to-blue-800 bg-clip-text text-transparent">
+          Chari
+          <span className="bg-gradient-to-b from-purple-400 to-pink-600 bg-clip-text text-transparent">
+            ty
+          </span>
+        </p>
       </Link>
       <nav className="flex items-center gap-4">
         <SignedIn>

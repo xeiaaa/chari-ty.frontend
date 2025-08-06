@@ -140,7 +140,7 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                   {Array.from({ length: limit }).map((_, index) => (
                     <CarouselItem
                       key={index}
-                      className="md:basis-1/2 lg:basis-1/3"
+                      className="basis-full sm:basis-1/2 lg:basis-1/3"
                     >
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <Skeleton className="aspect-[4/3] w-full" />
@@ -199,7 +199,7 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-gray-50 w-full">
       <div className="w-full px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -218,13 +218,13 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                 align: "start",
                 loop: true,
               }}
-              className="w-full relative"
+              className="w-4/5 md:w-full relative mx-auto"
             >
               <CarouselContent className="py-4">
                 {fundraisers.items.map((fundraiser) => (
                   <CarouselItem
                     key={fundraiser.id}
-                    className="md:basis-1/2 lg:basis-1/3"
+                    className="basis-full sm:basis-1/2 lg:basis-1/3"
                   >
                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                       <div className="aspect-[4/3] bg-muted relative overflow-hidden">
@@ -289,10 +289,11 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                           <h3 className="font-semibold text-lg line-clamp-1 text-gray-900">
                             {fundraiser.title}
                           </h3>
-                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                          <p className="text-sm min-h-12 text-gray-600 line-clamp-2 leading-relaxed">
                             {fundraiser.summary}
                           </p>
                         </div>
+                        {/* BUG */}
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-700">
@@ -305,7 +306,7 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                               )}
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="bg-gray-200 rounded-full h-2">
                             <div
                               className="bg-green-500 h-2 rounded-full"
                               style={{
@@ -326,6 +327,7 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                             </span>
                           </div>
                         </div>
+
                         <div className="flex gap-2 mt-4">
                           <Link
                             href={`/fundraisers/${fundraiser.slug}`}
@@ -334,7 +336,7 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full"
+                              className="w-full cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
                             >
                               View
                             </Button>
@@ -345,8 +347,8 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
-              <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
+              <CarouselPrevious className="absolute -left-12 md:-left-6 top-1/2 -translate-y-1/2" />
+              <CarouselNext className="absolute -right-12 md:-right-6 top-1/2 -translate-y-1/2" />
             </Carousel>
           </div>
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/api";
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -232,8 +233,17 @@ const TruncatedText = ({
 
 export default function FundraisersPage() {
   const api = useApi();
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
+
+  // Check for category query parameter on component mount
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    if (categoryParam && categories.includes(categoryParam)) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   const { data, isLoading, error } = useQuery<FundraisersResponse>({
     queryKey: ["public-fundraisers"],
@@ -528,7 +538,7 @@ export default function FundraisersPage() {
               {filteredFundraisers.map((fundraiser) => (
                 <div
                   key={fundraiser.id}
-                  className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 group"
+                  className="bg-white border border-gray-200 rounded-lg overflow-hidden md:hover:shadow-lg md:hover:scale-105 transition-all duration-300 group"
                 >
                   <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                     {fundraiser.cover?.eagerUrl ? (
@@ -567,7 +577,7 @@ export default function FundraisersPage() {
                   </div>
                   <div className="p-4">
                     <div className="space-y-3 mb-4">
-                      <h3 className="font-semibold text-lg line-clamp-1 text-gray-900 hover:text-blue-600 transition-all duration-300">
+                      <h3 className="font-semibold text-lg line-clamp-1 text-gray-900 md:hover:text-blue-600 transition-all duration-300">
                         {fundraiser.title}
                       </h3>
                       <TruncatedText
