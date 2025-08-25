@@ -162,6 +162,38 @@ export function GalleryUpload({
     }
   }, [existingItems, galleryItems.length]);
 
+  // Sync local state with existingItems to ensure UI stays in sync
+  useEffect(() => {
+    if (existingItems) {
+      const existingIds = new Set(existingItems.map((item) => item.id));
+      const localIds = new Set(galleryItems.map((item) => item.id));
+
+      // Remove items that no longer exist on the server
+      const itemsToRemove = galleryItems.filter(
+        (item) => !existingIds.has(item.id)
+      );
+      if (itemsToRemove.length > 0) {
+        setGalleryItems((prev) =>
+          prev.filter((item) => existingIds.has(item.id))
+        );
+      }
+
+      // Add new items that exist on the server but not locally
+      const itemsToAdd = existingItems.filter((item) => !localIds.has(item.id));
+      if (itemsToAdd.length > 0) {
+        setGalleryItems((prev) => [
+          ...prev,
+          ...itemsToAdd.map((item, index) => ({
+            id: item.id || `existing-${index}`,
+            asset: item.asset,
+            caption: item.caption || "",
+            order: item.order || index,
+          })),
+        ]);
+      }
+    }
+  }, [existingItems]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -202,9 +234,6 @@ export function GalleryUpload({
       return response.data;
     },
     onSuccess: (data) => {
-      // Don't invalidate queries to avoid reverting optimistic updates
-      // The server data will be synced on the next page load or manual refresh
-
       // Update local state with the new items
       if (data) {
         const newItems = Array.isArray(data) ? data : [data];
@@ -246,6 +275,21 @@ export function GalleryUpload({
         newItems.forEach((item) => onItemAdded(item));
       }
 
+      // Always invalidate queries to ensure UI stays in sync with server state
+      if (entitySlug) {
+        queryClient.invalidateQueries({
+          queryKey: [getEntityKey(type), entitySlug],
+        });
+      }
+      queryKeys.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+
+      // For verification uploads, also invalidate broader group queries to update the verification button state
+      if (type === UploadType.GROUP_VERIFICATION) {
+        queryClient.invalidateQueries({ queryKey: ["group"] });
+      }
+
       toast.success("Items added successfully!");
       onSuccess?.();
     },
@@ -282,15 +326,27 @@ export function GalleryUpload({
       return response.data;
     },
     onSuccess: (data, variables) => {
-      // Don't invalidate queries to avoid reverting optimistic updates
-      // The server data will be synced on the next page load or manual refresh
-
       // Find the updated item from local state and call onItemUpdated
       const updatedItem = galleryItems.find(
         (item) => item.id === variables.itemId
       );
       if (updatedItem) {
         onItemUpdated?.(updatedItem);
+      }
+
+      // Always invalidate queries to ensure UI stays in sync with server state
+      if (entitySlug) {
+        queryClient.invalidateQueries({
+          queryKey: [getEntityKey(type), entitySlug],
+        });
+      }
+      queryKeys.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+
+      // For verification uploads, also invalidate broader group queries to update the verification button state
+      if (type === UploadType.GROUP_VERIFICATION) {
+        queryClient.invalidateQueries({ queryKey: ["group"] });
       }
 
       toast.success("Item updated successfully!");
@@ -323,8 +379,20 @@ export function GalleryUpload({
       // Optimistically remove from local state
       setGalleryItems((prev) => prev.filter((item) => item.id !== itemId));
 
-      // Don't invalidate queries to avoid reverting optimistic updates
-      // The server data will be synced on the next page load or manual refresh
+      // Always invalidate queries to ensure UI stays in sync with server state
+      if (entitySlug) {
+        queryClient.invalidateQueries({
+          queryKey: [getEntityKey(type), entitySlug],
+        });
+      }
+      queryKeys.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+
+      // For verification uploads, also invalidate broader group queries to update the verification button state
+      if (type === UploadType.GROUP_VERIFICATION) {
+        queryClient.invalidateQueries({ queryKey: ["group"] });
+      }
 
       toast.success("Item deleted successfully!");
       onSuccess?.();
@@ -373,9 +441,21 @@ export function GalleryUpload({
       return response.data;
     },
     onSuccess: () => {
-      // Don't invalidate queries to avoid flickering
-      // The optimistic update already shows the correct order
-      // The server data will be synced on the next page load or manual refresh
+      // Always invalidate queries to ensure UI stays in sync with server state
+      if (entitySlug) {
+        queryClient.invalidateQueries({
+          queryKey: [getEntityKey(type), entitySlug],
+        });
+      }
+      queryKeys.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+
+      // For verification uploads, also invalidate broader group queries to update the verification button state
+      if (type === UploadType.GROUP_VERIFICATION) {
+        queryClient.invalidateQueries({ queryKey: ["group"] });
+      }
+
       toast.success("Order updated successfully!");
       onSuccess?.();
     },

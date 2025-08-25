@@ -8,6 +8,7 @@ import { useUpdateGroup, UpdateGroupData } from "@/lib/hooks/use-update-group";
 import { useUpdateMemberRole } from "@/lib/hooks/use-update-member-role";
 import { useRemoveMember } from "@/lib/hooks/use-remove-member";
 import { useUser } from "@/lib/hooks/use-user";
+import { useSubmitVerificationRequest } from "@/lib/hooks/use-submit-verification-request";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Card,
@@ -92,6 +93,13 @@ export default function SettingsPage() {
     memberId: "",
     memberName: "",
   });
+
+  // Verification request hook
+  const { submitVerificationRequest, isSubmitting } =
+    useSubmitVerificationRequest();
+
+  // Verification confirmation modal state
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
 
   // Fetch group details
   const {
@@ -204,6 +212,19 @@ export default function SettingsPage() {
         },
       }
     );
+  };
+
+  const handleSubmitVerificationRequest = async () => {
+    if (!groupDetails) return;
+
+    const success = await submitVerificationRequest(groupDetails.id, {
+      reason: `Verification request for ${groupDetails.name} - ${selectedAccount.type} account`,
+    });
+
+    if (success) {
+      // Show confirmation modal
+      setIsVerificationModalOpen(true);
+    }
   };
 
   const getAccountTypeLabel = () => {
@@ -359,13 +380,51 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">Pending</Badge>
-                <span className="text-sm text-muted-foreground">
-                  Verification request submitted on{" "}
-                  {new Date().toLocaleDateString()}
-                </span>
-              </div>
+              {groupDetails?.verificationRequest ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        groupDetails.verificationRequest.status === "approved"
+                          ? "default"
+                          : groupDetails.verificationRequest.status ===
+                            "rejected"
+                          ? "destructive"
+                          : "outline"
+                      }
+                    >
+                      {groupDetails.verificationRequest.status === "approved"
+                        ? "Approved"
+                        : groupDetails.verificationRequest.status === "rejected"
+                        ? "Rejected"
+                        : "Pending"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Verification request{" "}
+                      {groupDetails.verificationRequest.status === "pending" &&
+                        "submitted on "}
+                      {groupDetails.verificationRequest.status === "approved" &&
+                        "approved on "}
+                      {groupDetails.verificationRequest.status === "rejected" &&
+                        "rejected on "}
+                      {new Date(
+                        groupDetails.verificationRequest.createdAt
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  {groupDetails.verificationRequest.reason && (
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Reason:</strong>{" "}
+                      {groupDetails.verificationRequest.reason}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  No verification request submitted yet.
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="grid gap-2">
@@ -381,10 +440,23 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Button className="w-full">
-                <Shield className="h-4 w-4 mr-2" />
-                Submit Verification Request
-              </Button>
+              {!groupDetails?.verificationRequest && (
+                <Button
+                  className="w-full"
+                  onClick={handleSubmitVerificationRequest}
+                  disabled={
+                    isSubmitting ||
+                    (groupDetails?.groupUploads?.filter?.(
+                      ({ type }) => type === "verification"
+                    ).length ?? 0) === 0
+                  }
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  {isSubmitting
+                    ? "Submitting..."
+                    : "Submit Verification Request"}
+                </Button>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -420,6 +492,56 @@ export default function SettingsPage() {
         onConfirm={confirmRemoveMember}
         isRemoving={isRemovingMember}
       />
+
+      {/* Verification Confirmation Modal */}
+      <div
+        className={`fixed inset-0 z-50 flex items-center justify-center ${
+          isVerificationModalOpen
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none"
+        } transition-opacity duration-200`}
+      >
+        <div
+          className="fixed inset-0 bg-black/50"
+          onClick={() => setIsVerificationModalOpen(false)}
+        />
+        <div className="relative bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <Shield className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Verification Request Submitted
+              </h3>
+              <p className="text-sm text-gray-600">
+                Your request has been sent successfully
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-sm text-gray-700">
+            <p>
+              We&apos;ve received your verification request for{" "}
+              <strong>{groupDetails?.name}</strong>. Our team will review your
+              submission and get back to you within 2-3 business days.
+            </p>
+            <p>
+              You can track the status of your request in the Verification tab.
+              We&apos;ll notify you once the review is complete.
+            </p>
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <Button
+              onClick={() => setIsVerificationModalOpen(false)}
+              className="px-4 py-2"
+            >
+              Got it
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

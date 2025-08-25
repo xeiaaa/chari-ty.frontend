@@ -48,7 +48,14 @@ export interface GroupDetails {
   stripeId?: string | null;
   ownerId: string;
   members: GroupMember[];
-  groupUploads: GroupUploadItem[]
+  groupUploads: GroupUploadItem[];
+  verificationRequest?: {
+    id: string;
+    status: "pending" | "approved" | "rejected";
+    reason?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 export function useGroupBySlug(slug: string, enabled: boolean = true) {
