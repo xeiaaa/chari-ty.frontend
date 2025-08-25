@@ -2,11 +2,11 @@
 
 import { PublicTimelineMilestone } from "@/components/fundraisers/public-timeline-milestone-list";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   api,
-  formatAchievedTime,
+  formatAchievedDateTime,
   formatCategory,
   formatDate,
 } from "@/lib/utils";
@@ -18,14 +18,10 @@ import {
   User,
   ArrowLeft,
   Building,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -88,6 +84,8 @@ const MilestoneJourneyPage = () => {
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
+
+  console.log({ fundraiser });
 
   const getCategoryEmoji = (category: string) => {
     switch (category) {
@@ -157,6 +155,241 @@ const MilestoneJourneyPage = () => {
     }
   };
 
+  // Custom Image Carousel Component
+  interface ImageCarouselProps {
+    images: Array<{ id: string; eagerUrl: string }>;
+    title: string;
+    stepNumber: number;
+  }
+
+  const ImageCarousel: React.FC<ImageCarouselProps> = ({
+    images,
+    title,
+    stepNumber,
+  }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const thumbnailContainerRef = useRef<HTMLDivElement>(null);
+
+    const goToNext = () => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const goToPrevious = () => {
+      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const goToImage = (index: number) => {
+      setCurrentIndex(index);
+    };
+
+    const openLightbox = () => {
+      setIsLightboxOpen(true);
+    };
+
+    const closeLightbox = () => {
+      setIsLightboxOpen(false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isLightboxOpen) return;
+
+      switch (e.key) {
+        case "Escape":
+          closeLightbox();
+          break;
+        case "ArrowLeft":
+          goToPrevious();
+          break;
+        case "ArrowRight":
+          goToNext();
+          break;
+      }
+    };
+
+    useEffect(() => {
+      if (isLightboxOpen) {
+        document.addEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "unset";
+      }
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "unset";
+      };
+    }, [isLightboxOpen]);
+
+    if (!images || images.length === 0) return null;
+
+    return (
+      <>
+        {/* Main Image Section */}
+        <div
+          className="relative mb-4"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <img
+            src={images[currentIndex].eagerUrl}
+            alt={`${title} - Step ${stepNumber} - Image ${currentIndex + 1}`}
+            className="w-full h-96 object-cover rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+            onClick={openLightbox}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+
+          {/* Image overlay */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="bg-black/70 text-white px-3 py-2 rounded text-sm">
+              {title} - Step {stepNumber}
+            </div>
+          </div>
+
+          {/* Navigation arrows - only visible on hover */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
+                className={`absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isHovered ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                className={`absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isHovered ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Thumbnail Navigation */}
+        {images.length > 1 && (
+          <div className="relative">
+            <div
+              ref={thumbnailContainerRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide"
+            >
+              {images.map((image, index) => (
+                <button
+                  key={image.id}
+                  onClick={() => goToImage(index)}
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                    index === currentIndex
+                      ? "border-green-500 shadow-lg scale-105"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <img
+                    src={image.eagerUrl}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Lightbox */}
+        {isLightboxOpen && (
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+            <div className="relative max-w-4xl max-h-full">
+              {/* Close button */}
+              <button
+                onClick={closeLightbox}
+                className="absolute -top-12 right-0 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-all duration-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Main lightbox image */}
+              <img
+                src={images[currentIndex].eagerUrl}
+                alt={`${title} - Step ${stepNumber} - Image ${
+                  currentIndex + 1
+                }`}
+                className="max-w-full max-h-[80vh] object-contain rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+
+              {/* Lightbox navigation arrows */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={goToPrevious}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={goToNext}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Lightbox thumbnail navigation */}
+              {images.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                  <div className="flex gap-2 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg">
+                    {images.map((image, index) => (
+                      <button
+                        key={image.id}
+                        onClick={() => goToImage(index)}
+                        className={`w-12 h-12 rounded overflow-hidden border-2 transition-all duration-300 ${
+                          index === currentIndex
+                            ? "border-white"
+                            : "border-white/30 hover:border-white/60"
+                        }`}
+                      >
+                        <img
+                          src={image.eagerUrl}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Image counter */}
+              <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded text-sm">
+                {currentIndex + 1} / {images.length}
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const renderMilestoneContent = (milestone: PublicTimelineMilestone) => (
     <article className="mb-12">
       {/* Milestone Header */}
@@ -195,7 +428,7 @@ const MilestoneJourneyPage = () => {
             </div>
             {milestone.achieved && milestone.achievedAt && (
               <div className="text-sm text-gray-500">
-                Achieved at {formatAchievedTime(milestone.achievedAt)}
+                Achieved at {formatAchievedDateTime(milestone.achievedAt)}
               </div>
             )}
           </div>
@@ -214,66 +447,20 @@ const MilestoneJourneyPage = () => {
               </div>
             </div>
           )}
-
-          {milestone.achieved && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-green-800">
-                  Completed
-                </span>
-              </div>
-              <div className="text-xs text-green-700 mt-1">
-                Milestone goal achieved successfully
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Main Image Section */}
-      {milestone.proofUrls && milestone.proofUrls.length > 0 && (
+      {milestone.milestoneUploads && milestone.milestoneUploads.length > 0 && (
         <div className="mb-6">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent>
-              {milestone.proofUrls.map((url, index) => {
-                if (!url) return null;
-                return (
-                  <CarouselItem key={url} className="md:basis-1/1">
-                    <div className="relative">
-                      <img
-                        src={url}
-                        alt={`Milestone ${milestone.stepNumber} - Image ${
-                          index + 1
-                        }`}
-                        className="w-full h-96 object-cover rounded-lg"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="bg-black/70 text-white px-3 py-2 rounded text-sm">
-                          {milestone.title} - Step {milestone.stepNumber}
-                        </div>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-            {milestone.proofUrls.length > 1 && (
-              <>
-                <CarouselPrevious className="left-4" />
-                <CarouselNext className="right-4" />
-              </>
-            )}
-          </Carousel>
+          <ImageCarousel
+            images={milestone.milestoneUploads.map((upload) => ({
+              id: upload.id,
+              eagerUrl: upload.upload.eagerUrl,
+            }))}
+            title={milestone.title}
+            stepNumber={milestone.stepNumber}
+          />
         </div>
       )}
 
@@ -290,20 +477,6 @@ const MilestoneJourneyPage = () => {
           </div>
         </div>
       )}
-
-      {/* Post Details */}
-      <div className="border-t border-gray-200 pt-4">
-        <h4 className="text-sm font-semibold text-gray-900 mb-2">
-          Post Details
-        </h4>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span>Hosted by {formatDate(milestone.createdAt)}</span>
-          <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-            <User className="w-3 h-3 text-gray-600" />
-          </div>
-          <span>Fundraiser</span>
-        </div>
-      </div>
     </article>
   );
 
@@ -463,7 +636,7 @@ const MilestoneJourneyPage = () => {
             {/* Creator Details */}
             <div className="border-t border-gray-200 pt-4">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                Created by
+                Group
               </h4>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -475,14 +648,7 @@ const MilestoneJourneyPage = () => {
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">
-                    {fundraiser.ownerType === "group"
-                      ? fundraiser.group?.name || "Fundraiser Group"
-                      : "Individual Fundraiser"}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {fundraiser.ownerType === "group"
-                      ? "Organized by a group"
-                      : "Organized by an individual"}
+                    {fundraiser.group?.name}
                   </div>
                 </div>
               </div>

@@ -81,8 +81,6 @@ export default function PublicFundraiserPage() {
     },
   });
 
-  console.log({ fundraiser });
-
   // Check for donation status in URL parameters
   useEffect(() => {
     const donation = searchParams.get("donation");
@@ -320,7 +318,7 @@ export default function PublicFundraiserPage() {
                     </div>
                     <div className="w-full bg-muted rounded-full h-3">
                       <div
-                        className="bg-primary h-3 rounded-full"
+                        className="bg-green-500 h-3 rounded-full"
                         style={{
                           width: `${
                             fundraiser.progress?.progressPercentage || 0

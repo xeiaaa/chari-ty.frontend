@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/api";
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -152,6 +153,37 @@ const getCategoryEmoji = (category: string) => {
   }
 };
 
+const getCategoryBadgeStyle = (category: string) => {
+  switch (category) {
+    case "education":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "health":
+      return "bg-red-100 text-red-800 border-red-200";
+    case "disaster_relief":
+      return "bg-orange-100 text-orange-800 border-orange-200";
+    case "environment":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "animals":
+      return "bg-purple-100 text-purple-800 border-purple-200";
+    case "children":
+      return "bg-pink-100 text-pink-800 border-pink-200";
+    case "community":
+      return "bg-teal-100 text-teal-800 border-teal-200";
+    case "arts":
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    case "sports":
+      return "bg-cyan-100 text-cyan-800 border-cyan-200";
+    case "food":
+      return "bg-amber-100 text-amber-800 border-amber-200";
+    case "housing":
+      return "bg-slate-100 text-slate-800 border-slate-200";
+    case "technology":
+      return "bg-indigo-100 text-indigo-800 border-indigo-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+};
+
 const TruncatedText = ({
   text,
   className,
@@ -201,8 +233,17 @@ const TruncatedText = ({
 
 export default function FundraisersPage() {
   const api = useApi();
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
+
+  // Check for category query parameter on component mount
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    if (categoryParam && categories.includes(categoryParam)) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   const { data, isLoading, error } = useQuery<FundraisersResponse>({
     queryKey: ["public-fundraisers"],
@@ -497,9 +538,9 @@ export default function FundraisersPage() {
               {filteredFundraisers.map((fundraiser) => (
                 <div
                   key={fundraiser.id}
-                  className="bg-muted/50 border border-border rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 group"
+                  className="bg-white border border-gray-200 rounded-lg overflow-hidden md:hover:shadow-lg md:hover:scale-105 transition-all duration-300 group"
                 >
-                  <div className="h-48 bg-muted relative overflow-hidden">
+                  <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                     {fundraiser.cover?.eagerUrl ? (
                       <img
                         src={fundraiser.cover.eagerUrl}
@@ -520,38 +561,42 @@ export default function FundraisersPage() {
                         </span>
                       </div>
                     )}
-                    {/* Category overlay */}
-                    <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-[10px] font-medium">
+                    {/* Category badge */}
+                    <div
+                      className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-semibold border ${getCategoryBadgeStyle(
+                        fundraiser.category
+                      )}`}
+                    >
                       {fundraiser.category.replace("_", " ").toUpperCase()}
                     </div>
                     {!fundraiser.isPublic && (
-                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                      <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium">
                         Private
                       </div>
                     )}
                   </div>
                   <div className="p-4">
-                    <div className="space-y-2 mb-4">
-                      <h3 className="font-semibold text-l line-clamp-1 hover:text-blue-600 transition-all duration-300">
+                    <div className="space-y-3 mb-4">
+                      <h3 className="font-semibold text-lg line-clamp-1 text-gray-900 md:hover:text-blue-600 transition-all duration-300">
                         {fundraiser.title}
                       </h3>
                       <TruncatedText
                         text={fundraiser.summary}
-                        className="text-sm text-muted-foreground line-clamp-2 mb-4 min-h-10 max-h-10"
+                        className="text-sm text-gray-600 line-clamp-2 leading-relaxed min-h-10 max-h-10"
                       />
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-gray-500">
                         group:{" "}
                         {fundraiser.group ? (
                           <Link
                             href={`/groups/${fundraiser.group.slug}`}
-                            className="text-primary hover:underline font-medium"
+                            className="text-blue-600 hover:underline font-medium"
                           >
                             {fundraiser.group.name}
                           </Link>
                         ) : fundraiser.user ? (
                           <Link
                             href={`/users/${fundraiser.user.username}`}
-                            className="text-primary hover:underline font-medium"
+                            className="text-blue-600 hover:underline font-medium"
                           >
                             {fundraiser.user.firstName}{" "}
                             {fundraiser.user.lastName}
@@ -561,19 +606,21 @@ export default function FundraisersPage() {
                         )}
                       </div>
                     </div>
-                    <div className="space-y-2 mt-auto">
+                    <div className="space-y-3 mt-auto">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Goal</span>
-                        <span className="text-sm font-semibold">
+                        <span className="text-sm font-medium text-gray-700">
+                          Goal
+                        </span>
+                        <span className="text-sm font-bold text-green-600">
                           {formatCurrency(
                             parseFloat(fundraiser.goalAmount),
                             fundraiser.currency
                           )}
                         </span>
                       </div>
-                      <div className="w-full bg-muted rounded-full h-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-green-500 h-2 rounded-full"
+                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
                           style={{
                             width: `${
                               fundraiser.progress?.progressPercentage || 0
@@ -581,7 +628,7 @@ export default function FundraisersPage() {
                           }}
                         />
                       </div>
-                      <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <div className="flex justify-between items-center text-xs text-gray-500">
                         <span>
                           {formatCurrency(
                             parseFloat(fundraiser.progress?.totalRaised || "0"),
@@ -599,7 +646,11 @@ export default function FundraisersPage() {
                         href={`/fundraisers/${fundraiser.slug}`}
                         className="flex-1"
                       >
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
+                        >
                           View
                         </Button>
                       </Link>

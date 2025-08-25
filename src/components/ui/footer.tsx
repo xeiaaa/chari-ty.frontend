@@ -2,70 +2,79 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 pt-12">
+    <footer className="bg-gray-900 text-white border-t border-gray-800 w-full">
+      <div className="w-full px-4 pt-16 pb-8">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Company Info */}
-          <div className="md:col-span-2">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Chari-ty</h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold">Chari-ty</h3>
+            </div>
+            <p className="text-gray-300 mb-6 leading-relaxed max-w-md">
               Chari-ty is a crowdfunding platform that lets you raise money for
               anything that matters to you. From personal causes and events to
               projects and more. We&apos;ve helped people from all over the
               world raise millions online through transparent and verified
               fundraising.
             </p>
-            <div className="text-sm text-gray-500">
-              <p>Chari-ty Global Ltd</p>
-              <p>Building Trust Through Transparency</p>
+            <div className="text-sm text-gray-400">
+              <p className="font-medium">Chari-ty Global Ltd</p>
+              <p className="italic">Building Trust Through Transparency</p>
             </div>
           </div>
 
           {/* Learn More */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-4">
-              Learn More
-            </h4>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <h4 className="text-lg font-bold text-white mb-6">Learn More</h4>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
-                  About
+                  About Us
                 </Link>
               </li>
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
-                  FAQ
+                  How It Works
                 </Link>
               </li>
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
-                  How To Fundraise
+                  Success Stories
                 </Link>
               </li>
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
-                  Team Fundraising
+                  Fundraising Tips
                 </Link>
               </li>
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
-                  Countries
+                  Community Guidelines
                 </Link>
               </li>
             </ul>
@@ -73,14 +82,12 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-4">
-              Support
-            </h4>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <h4 className="text-lg font-bold text-white mb-6">Support</h4>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
                   Help Center
                 </Link>
@@ -88,7 +95,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
                   Contact Us
                 </Link>
@@ -96,7 +103,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
                   Privacy Policy
                 </Link>
@@ -104,15 +111,15 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
-                  Terms & Conditions
+                  Terms of Service
                 </Link>
               </li>
               <li>
                 <Link
                   href="#"
-                  className="hover:text-gray-900 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
                 >
                   Trust & Safety
                 </Link>
@@ -122,14 +129,15 @@ export function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex space-x-4 mb-4 md:mb-0">
+        <div className="max-w-6xl mx-auto border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="flex space-x-4 mb-6 md:mb-0">
             <a
               href="#"
-              className="w-8 h-8 bg-white border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors duration-300"
+              aria-label="Twitter"
             >
               <svg
-                className="w-4 h-4 text-gray-600"
+                className="w-5 h-5 text-gray-300"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -138,10 +146,24 @@ export function Footer() {
             </a>
             <a
               href="#"
-              className="w-8 h-8 bg-white border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors duration-300"
+              aria-label="Facebook"
             >
               <svg
-                className="w-4 h-4 text-gray-600"
+                className="w-5 h-5 text-gray-300"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors duration-300"
+              aria-label="Instagram"
+            >
+              <svg
+                className="w-5 h-5 text-gray-300"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -149,8 +171,11 @@ export function Footer() {
               </svg>
             </a>
           </div>
-          <div className="text-sm text-gray-500">
-            ©2024 Copyright Chari-ty. All Rights Reserved.
+          <div className="text-sm text-gray-400 text-center md:text-right">
+            <p>©2024 Copyright Chari-ty. All Rights Reserved.</p>
+            <p className="mt-1">
+              Building a more generous world, one donation at a time.
+            </p>
           </div>
         </div>
       </div>

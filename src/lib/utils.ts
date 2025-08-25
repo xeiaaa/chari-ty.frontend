@@ -61,3 +61,28 @@ export function formatAchievedTime(dateString: string) {
     hour12: true,
   });
 }
+
+export function formatAchievedDateTime(dateString: string) {
+  const achievedDate = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - achievedDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  // If within a month (30 days), show "X days ago"
+  if (diffDays <= 30) {
+    if (diffDays === 1) {
+      return "1 day ago";
+    } else if (diffDays === 0) {
+      return "Today";
+    } else {
+      return `${diffDays} days ago`;
+    }
+  }
+
+  // If more than a month, show the full date
+  return achievedDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
