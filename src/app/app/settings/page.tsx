@@ -95,8 +95,7 @@ export default function SettingsPage() {
   });
 
   // Verification request hook
-  const { submitVerificationRequest, isSubmitting } =
-    useSubmitVerificationRequest();
+  const { isSubmitting } = useSubmitVerificationRequest();
 
   // Verification confirmation modal state
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
@@ -214,17 +213,9 @@ export default function SettingsPage() {
     );
   };
 
-  const handleSubmitVerificationRequest = async () => {
+  const handleOpenModal = async () => {
     if (!groupDetails) return;
-
-    const success = await submitVerificationRequest(groupDetails.id, {
-      reason: `Verification request for ${groupDetails.name} - ${selectedAccount.type} account`,
-    });
-
-    if (success) {
-      // Show confirmation modal
-      setIsVerificationModalOpen(true);
-    }
+    setIsVerificationModalOpen(true);
   };
 
   const getAccountTypeLabel = () => {
@@ -443,7 +434,7 @@ export default function SettingsPage() {
               {!groupDetails?.verificationRequest && (
                 <Button
                   className="w-full"
-                  onClick={handleSubmitVerificationRequest}
+                  onClick={handleOpenModal}
                   disabled={
                     isSubmitting ||
                     (groupDetails?.groupUploads?.filter?.(
