@@ -5,19 +5,21 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Home,
-  GalleryHorizontalEnd,
+  Users,
   Settings,
   Menu,
   X,
   User,
   LogOut,
-  CreditCard,
-  Mail,
+  Shield,
+  BarChart3,
+  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser as useClerkUser, useClerk } from "@clerk/nextjs";
 import { useUser } from "@/lib/hooks/use-user";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -30,21 +32,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TeamSwitcher } from "@/components/ui/team-switcher";
 
-const navigation = [
-  { name: "Dashboard", href: "/app/dashboard", icon: Home },
+const adminNavigation = [
+  { name: "Dashboard", href: "/admin/dashboard", icon: Home },
+  { name: "Users", href: "/admin/users", icon: Users },
   {
-    name: "Fundraisers",
-    href: "/app/fundraisers",
-    icon: GalleryHorizontalEnd,
+    name: "Verification Requests",
+    href: "/admin/verification-requests",
+    icon: CheckCircle,
   },
-  { name: "Donation Payouts", href: "/app/payouts", icon: CreditCard },
-  { name: "Invitations", href: "/app/invitations", icon: Mail },
-  { name: "Settings", href: "/app/settings", icon: Settings },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-export default function HomeLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -52,10 +53,36 @@ export default function HomeLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user: clerkUser, isLoaded: isUserLoaded } = useClerkUser();
-  const { user: appUser } = useUser();
+  const { user: appUser, isLoading: appUserLoading } = useUser();
   const { signOut } = useClerk();
+  const router = useRouter();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!appUserLoading && appUser && !appUser.isAdmin) {
+      router.push("/app/dashboard");
+    }
+  }, [appUser, appUserLoading, router]);
+
+  // Show loading state while checking admin status
+  if (appUserLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-pulse" />
+          <h1 className="text-2xl font-bold mb-2">Loading...</h1>
+          <p className="text-muted-foreground">Checking permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render admin layout if user is not admin (will redirect)
+  if (appUser && !appUser.isAdmin) {
+    return null;
+  }
 
   return (
     <AuthGate>
@@ -77,13 +104,13 @@ export default function HomeLayout({
           <div className="flex flex-row gap-4 justify-center items-center">
             <div className="h-16 items-center flex-shrink-0 hidden lg:flex">
               <Link
-                href="/"
-                className="text-xl font-bold hover:opacity-80 transition-opacity"
+                href="/admin/dashboard"
+                className="text-xl font-bold hover:opacity-80 transition-opacity flex items-center gap-2"
               >
-                Chari-ty
+                <Shield className="h-6 w-6 text-primary" />
+                Admin Panel
               </Link>
             </div>
-            <TeamSwitcher />
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
@@ -112,6 +139,12 @@ export default function HomeLayout({
                     {clerkUser?.fullName || "User"}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/app/dashboard">
+                      <Home className="mr-2 h-4 w-4" />
+                      <span>Back to App</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
@@ -132,14 +165,15 @@ export default function HomeLayout({
           >
             <div className="flex h-16 items-center px-6 flex-shrink-0 lg:hidden">
               <Link
-                href="/"
-                className="text-xl font-bold hover:opacity-80 transition-opacity"
+                href="/admin/dashboard"
+                className="text-xl font-bold hover:opacity-80 transition-opacity flex items-center gap-2"
               >
-                Chari-ty
+                <Shield className="h-6 w-6 text-primary" />
+                Admin Panel
               </Link>
             </div>
             <nav className="flex flex-col gap-1 p-4 flex-1">
-              {navigation.map((item) => {
+              {adminNavigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -159,19 +193,17 @@ export default function HomeLayout({
                 );
               })}
 
-              {/* Admin Label */}
-              {appUser?.isAdmin && (
-                <div className="mt-auto pt-4 border-t border-border">
-                  <Link
-                    href="/admin/dashboard"
-                    onClick={() => setIsSidebarOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-primary" />
-                    <span>Admin Dashboard</span>
-                  </Link>
-                </div>
-              )}
+              {/* Back to App Link */}
+              <div className="mt-auto pt-4 border-t border-border">
+                <Link
+                  href="/app/dashboard"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium hover:bg-muted transition-colors"
+                >
+                  <Home className="h-5 w-5" />
+                  <span>Back to App</span>
+                </Link>
+              </div>
             </nav>
           </div>
 

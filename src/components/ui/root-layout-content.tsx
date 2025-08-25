@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { PublicHeader } from "./public-header";
 
-const AUTHENTICATED_ROUTES = ["/app"];
+const AUTHENTICATED_ROUTES = ["/app", "/admin"];
 
 export function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
