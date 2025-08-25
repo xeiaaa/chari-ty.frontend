@@ -110,8 +110,21 @@ export function VerificationRequestItem({
     }
   };
 
-  const verificationUploads = request.group.groupUploads.filter(
-    (upload) => upload.type === "verification"
+  const verificationUploads = request.group.groupUploads
+    .filter((upload) => upload.type === "verification")
+    .filter(
+      (upload, index, self) =>
+        // Remove duplicates based on ID
+        index === self.findIndex((u) => u.id === upload.id)
+    );
+
+  // Debug: Log the uploads to see what we're working with
+  console.log(
+    "Verification uploads:",
+    verificationUploads.map((u) => ({
+      id: u.id,
+      filename: u.upload.originalFilename,
+    }))
   );
 
   const getFileType = (upload: GroupUpload) => {
@@ -290,8 +303,11 @@ export function VerificationRequestItem({
 
           {verificationUploads.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {verificationUploads.map((upload) => (
-                <div key={upload.id} className="relative group">
+              {verificationUploads.map((upload, index) => (
+                <div
+                  key={`upload-${upload.id}-${index}`}
+                  className="relative group"
+                >
                   <div className="aspect-square rounded-lg border overflow-hidden bg-gray-50">
                     {getFileType(upload) === "image" ? (
                       <>

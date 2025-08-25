@@ -165,13 +165,29 @@ export function GalleryUpload({
   // Sync local state with existingItems to ensure UI stays in sync
   useEffect(() => {
     if (existingItems) {
-      const existingIds = new Set(existingItems.map((item) => item.id));
-      const localIds = new Set(galleryItems.map((item) => item.id));
+      // Create a map of existing items by ID to avoid duplicates
+      const existingItemsMap = new Map();
+      existingItems.forEach((item, index) => {
+        const id = item.id || `existing-${index}`;
+        if (!existingItemsMap.has(id)) {
+          existingItemsMap.set(id, {
+            id,
+            asset: item.asset,
+            caption: item.caption || "",
+            order: item.order || index,
+          });
+        }
+      });
+
+      // Get unique existing items
+      const uniqueExistingItems = Array.from(existingItemsMap.values());
 
       // Remove items that no longer exist on the server
+      const existingIds = new Set(uniqueExistingItems.map((item) => item.id));
       const itemsToRemove = galleryItems.filter(
         (item) => !existingIds.has(item.id)
       );
+
       if (itemsToRemove.length > 0) {
         setGalleryItems((prev) =>
           prev.filter((item) => existingIds.has(item.id))
@@ -179,17 +195,13 @@ export function GalleryUpload({
       }
 
       // Add new items that exist on the server but not locally
-      const itemsToAdd = existingItems.filter((item) => !localIds.has(item.id));
+      const localIds = new Set(galleryItems.map((item) => item.id));
+      const itemsToAdd = uniqueExistingItems.filter(
+        (item) => !localIds.has(item.id)
+      );
+
       if (itemsToAdd.length > 0) {
-        setGalleryItems((prev) => [
-          ...prev,
-          ...itemsToAdd.map((item, index) => ({
-            id: item.id || `existing-${index}`,
-            asset: item.asset,
-            caption: item.caption || "",
-            order: item.order || index,
-          })),
-        ]);
+        setGalleryItems((prev) => [...prev, ...itemsToAdd]);
       }
     }
   }, [existingItems]);
@@ -950,7 +962,7 @@ export function GalleryUpload({
                   >
                     {galleryItems.map((item, index) => (
                       <Draggable
-                        key={item.id}
+                        key={`${item.id}-${index}`}
                         draggableId={item.id}
                         index={index}
                         isDragDisabled={isReordering}
