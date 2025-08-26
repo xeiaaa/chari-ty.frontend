@@ -23,19 +23,6 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-interface GroupFundraiser {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  category: string;
-  goalAmount: string;
-  currency: string;
-  endDate?: string;
-  coverUrl: string;
-  createdAt: string;
-}
-
 interface GroupUpload {
   id: string;
   groupId: string;
@@ -418,7 +405,7 @@ export default function PublicGroupPage() {
                   No fundraisers found
                 </h3>
                 <p className="text-muted-foreground">
-                  This group hasn't published any fundraisers yet.
+                  This group hasn&apos;t published any fundraisers yet.
                 </p>
               </div>
             </div>
