@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { useUser as useClerkUser, useClerk } from "@clerk/nextjs";
+import { useUser as useClerkUser } from "@clerk/nextjs";
 import { useUser } from "@/lib/hooks/use-user";
 import { useRouter } from "next/navigation";
+import { useSignOut } from "@/lib/hooks/use-sign-out";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -54,7 +55,7 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user: clerkUser, isLoaded: isUserLoaded } = useClerkUser();
   const { user: appUser, isLoading: appUserLoading } = useUser();
-  const { signOut } = useClerk();
+  const { signOut } = useSignOut();
   const router = useRouter();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -145,7 +146,7 @@ export default function AdminLayout({
                       <span>Back to App</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => signOut()}>
+                  <DropdownMenuItem onClick={signOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>

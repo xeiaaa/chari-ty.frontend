@@ -5,6 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
 import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +20,7 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import Link from "next/link";
+import { Calendar, Users } from "lucide-react";
 
 interface Fundraiser {
   id: string;
@@ -46,6 +54,15 @@ interface Fundraiser {
     name: string;
     description: string;
     slug: string;
+    type: string;
+    verified: boolean;
+    owner: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      avatarUrl?: string;
+    };
   };
 }
 
@@ -278,6 +295,28 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                         >
                           {fundraiser.category.replace("_", " ").toUpperCase()}
                         </div>
+
+                        {/* Verified badge */}
+                        {fundraiser.group?.verified && (
+                          <div className="absolute top-3 left-3">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help">
+                                    ✓ Verified
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>
+                                    The group who posted is a verified group /
+                                    individual / nonprofit org.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        )}
+
                         {!fundraiser.isPublic && (
                           <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium">
                             Private
@@ -292,6 +331,65 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                           <p className="text-sm min-h-12 text-gray-600 line-clamp-2 leading-relaxed">
                             {fundraiser.summary}
                           </p>
+
+                          {/* Creation date and group info */}
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>
+                                Created{" "}
+                                {new Date(
+                                  fundraiser.createdAt
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              <span>
+                                {fundraiser.group ? (
+                                  <div className="flex items-center gap-1">
+                                    <Link
+                                      href={`/groups/${fundraiser.group.slug}`}
+                                      className="text-blue-600 hover:underline font-medium"
+                                    >
+                                      {fundraiser.group.type === "individual"
+                                        ? `${fundraiser.group.owner.firstName} ${fundraiser.group.owner.lastName}`
+                                        : fundraiser.group.name}
+                                    </Link>
+                                    {fundraiser.group.verified && (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger>
+                                            <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help text-xs px-1 py-0">
+                                              ✓
+                                            </Badge>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>
+                                              The group who posted is a verified
+                                              group / individual / nonprofit
+                                              org.
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
+                                  </div>
+                                ) : fundraiser.user ? (
+                                  <span>
+                                    {fundraiser.user.firstName}{" "}
+                                    {fundraiser.user.lastName}
+                                  </span>
+                                ) : (
+                                  <span>Unknown</span>
+                                )}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                         {/* BUG */}
                         <div className="space-y-3">

@@ -144,24 +144,6 @@ export function GalleryUpload({
     null
   );
 
-  // Initialize gallery items from existing data
-  useEffect(() => {
-    if (existingItems && galleryItems.length === 0) {
-      // Only initialize from existingItems if we don't have any local items
-      // This prevents reordered items from being reset to their original order
-      const items: GalleryItem[] = existingItems.map((item, index) => ({
-        id: item.id || `existing-${index}`,
-        asset: item.asset,
-        caption: item.caption || "",
-        order: item.order || index,
-      }));
-      setGalleryItems(items);
-    } else if (!existingItems && galleryItems.length === 0) {
-      // Clear items only if we don't have any local items and no existing items
-      setGalleryItems([]);
-    }
-  }, [existingItems, galleryItems.length]);
-
   // Sync local state with existingItems to ensure UI stays in sync
   useEffect(() => {
     if (existingItems) {
@@ -182,29 +164,37 @@ export function GalleryUpload({
       // Get unique existing items
       const uniqueExistingItems = Array.from(existingItemsMap.values());
 
-      // Remove items that no longer exist on the server
-      const existingIds = new Set(uniqueExistingItems.map((item) => item.id));
-      const itemsToRemove = galleryItems.filter(
-        (item) => !existingIds.has(item.id)
-      );
-
-      if (itemsToRemove.length > 0) {
-        setGalleryItems((prev) =>
-          prev.filter((item) => existingIds.has(item.id))
+      // If we have no local items, initialize with existing items
+      if (galleryItems.length === 0) {
+        setGalleryItems(uniqueExistingItems);
+      } else {
+        // Remove items that no longer exist on the server
+        const existingIds = new Set(uniqueExistingItems.map((item) => item.id));
+        const itemsToRemove = galleryItems.filter(
+          (item) => !existingIds.has(item.id)
         );
-      }
 
-      // Add new items that exist on the server but not locally
-      const localIds = new Set(galleryItems.map((item) => item.id));
-      const itemsToAdd = uniqueExistingItems.filter(
-        (item) => !localIds.has(item.id)
-      );
+        if (itemsToRemove.length > 0) {
+          setGalleryItems((prev) =>
+            prev.filter((item) => existingIds.has(item.id))
+          );
+        }
 
-      if (itemsToAdd.length > 0) {
-        setGalleryItems((prev) => [...prev, ...itemsToAdd]);
+        // Add new items that exist on the server but not locally
+        const localIds = new Set(galleryItems.map((item) => item.id));
+        const itemsToAdd = uniqueExistingItems.filter(
+          (item) => !localIds.has(item.id)
+        );
+
+        if (itemsToAdd.length > 0) {
+          setGalleryItems((prev) => [...prev, ...itemsToAdd]);
+        }
       }
+    } else if (!existingItems && galleryItems.length === 0) {
+      // Clear items only if we don't have any local items and no existing items
+      setGalleryItems([]);
     }
-  }, [existingItems]);
+  }, [existingItems, galleryItems.length]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

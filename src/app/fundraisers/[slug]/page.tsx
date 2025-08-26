@@ -5,6 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DonationDialog } from "@/components/ui/donation-dialog";
 import { api, formatCategory, formatCurrency, formatDate } from "@/lib/utils";
 import { Calendar, Globe, Users, Share2, Heart } from "lucide-react";
@@ -43,6 +50,21 @@ interface Fundraiser {
   milestones: PublicTimelineMilestone[];
   cover?: {
     eagerUrl: string;
+  };
+  group?: {
+    id: string;
+    name: string;
+    description: string;
+    slug: string;
+    type: string;
+    verified: boolean;
+    owner: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      avatarUrl?: string;
+    };
   };
 }
 
@@ -210,6 +232,23 @@ export default function PublicFundraiserPage() {
                 <span className="bg-black/70 text-white px-2 py-1 rounded text-xs capitalize">
                   {fundraiser.status}
                 </span>
+                {fundraiser.group?.verified && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help">
+                          ✓ Verified
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          The group who posted is a verified group / individual
+                          / nonprofit org.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             </div>
           </div>
@@ -241,9 +280,18 @@ export default function PublicFundraiserPage() {
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
                       <span>
-                        {fundraiser.ownerType === "group"
-                          ? "Group"
-                          : "Personal"}
+                        {fundraiser.group ? (
+                          <Link
+                            href={`/groups/${fundraiser.group.slug}`}
+                            className="text-blue-600 hover:underline font-medium"
+                          >
+                            {fundraiser.group.type === "individual"
+                              ? `${fundraiser.group.owner.firstName} ${fundraiser.group.owner.lastName}`
+                              : fundraiser.group.name}
+                          </Link>
+                        ) : (
+                          "Personal"
+                        )}
                       </span>
                     </div>
                   </div>

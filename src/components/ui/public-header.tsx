@@ -1,9 +1,10 @@
 "use client";
 
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
+import { CustomUserButton } from "./custom-user-button";
 
 export function PublicHeader() {
   const pathname = usePathname();
@@ -32,7 +33,7 @@ export function PublicHeader() {
               >
                 Dashboard
               </Link>
-              <UserButton afterSignOutUrl="/" />
+              <CustomUserButton />
             </div>
           )}
         </SignedIn>
@@ -52,7 +53,7 @@ export function PublicHeader() {
           </div>
         </SignedOut>
         <SignedIn>
-          {pathname === "/onboarding" && <UserButton afterSignOutUrl="/" />}
+          {pathname === "/onboarding" && <CustomUserButton />}
         </SignedIn>
       </nav>
     </header>

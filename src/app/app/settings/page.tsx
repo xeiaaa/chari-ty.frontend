@@ -26,6 +26,7 @@ import {
   User,
   Building2,
   Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { InviteMemberDialog } from "@/components/fundraisers/invite-member-dialog";
 import { RemoveMemberDialog } from "@/components/ui/remove-member-dialog";
@@ -95,7 +96,8 @@ export default function SettingsPage() {
   });
 
   // Verification request hook
-  const { isSubmitting } = useSubmitVerificationRequest();
+  const { submitVerificationRequest, isSubmitting } =
+    useSubmitVerificationRequest();
 
   // Verification confirmation modal state
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
@@ -213,9 +215,15 @@ export default function SettingsPage() {
     );
   };
 
-  const handleOpenModal = async () => {
+  const handleSubmitVerification = async () => {
     if (!groupDetails) return;
-    setIsVerificationModalOpen(true);
+
+    const result = await submitVerificationRequest(groupDetails.id, {});
+
+    if (result) {
+      // Only show the success modal if the request was successful
+      setIsVerificationModalOpen(true);
+    }
   };
 
   const getAccountTypeLabel = () => {
@@ -434,7 +442,7 @@ export default function SettingsPage() {
               {!groupDetails?.verificationRequest && (
                 <Button
                   className="w-full"
-                  onClick={handleOpenModal}
+                  onClick={handleSubmitVerification}
                   disabled={
                     isSubmitting ||
                     (groupDetails?.groupUploads?.filter?.(
@@ -442,7 +450,11 @@ export default function SettingsPage() {
                     ).length ?? 0) === 0
                   }
                 >
-                  <Shield className="h-4 w-4 mr-2" />
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Shield className="h-4 w-4 mr-2" />
+                  )}
                   {isSubmitting
                     ? "Submitting..."
                     : "Submit Verification Request"}
