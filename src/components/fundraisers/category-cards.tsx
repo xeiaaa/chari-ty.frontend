@@ -5,16 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
 import { useState, useRef, useEffect } from "react";
 
-interface Fundraiser {
-  id: string;
-  category: string;
-}
-
-interface FundraisersResponse {
-  items: Fundraiser[];
-  meta: {
-    total: number;
-  };
+interface CategoriesResponse {
+  [category: string]: number;
 }
 
 // Categories from fundraisers page with proper mapping
@@ -137,19 +129,18 @@ export function CategoryCards() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  const { data, isLoading } = useQuery<FundraisersResponse>({
-    queryKey: ["public-fundraisers"],
+  const { data, isLoading } = useQuery<CategoriesResponse>({
+    queryKey: ["fundraiser-categories"],
     queryFn: async () => {
-      const response = await api.get("/public/fundraisers");
+      const response = await api.get("/public/fundraisers/categories");
       return response.data;
     },
   });
 
-  // Calculate campaign counts for each category
+  // Get campaign count for a specific category
   const getCategoryCount = (categoryId: string) => {
-    if (!data?.items) return 0;
-    return data.items.filter((fundraiser) => fundraiser.category === categoryId)
-      .length;
+    if (!data) return 0;
+    return data[categoryId] || 0;
   };
 
   // Auto-scroll functionality
