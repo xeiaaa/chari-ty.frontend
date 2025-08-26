@@ -144,6 +144,50 @@ export function GalleryUpload({
     null
   );
 
+  // Initialize gallery items from existing data
+  useEffect(() => {
+    if (existingItems && galleryItems.length === 0) {
+      // Only initialize from existingItems if we don't have any local items
+      // This prevents reordered items from being reset to their original order
+      // Deduplicate items by ID to prevent React key conflicts
+      const existingItemsMap = new Map();
+      existingItems.forEach((item, index) => {
+        const id = item.id || `existing-${index}`;
+        if (!existingItemsMap.has(id)) {
+          existingItemsMap.set(id, {
+            id,
+            asset: item.asset,
+            caption: item.caption || "",
+            order: item.order || index,
+          });
+        }
+      });
+
+      const uniqueItems = Array.from(existingItemsMap.values());
+
+      // Debug: Log the deduplication process
+      console.log(
+        "Original existingItems:",
+        existingItems.map((item) => ({
+          id: item.id,
+          filename: item.asset.originalFilename,
+        }))
+      );
+      console.log(
+        "Deduplicated items:",
+        uniqueItems.map((item) => ({
+          id: item.id,
+          filename: item.asset.originalFilename,
+        }))
+      );
+
+      setGalleryItems(uniqueItems);
+    } else if (!existingItems && galleryItems.length === 0) {
+      // Clear items only if we don't have any local items and no existing items
+      setGalleryItems([]);
+    }
+  }, [existingItems, galleryItems.length]);
+
   // Sync local state with existingItems to ensure UI stays in sync
   useEffect(() => {
     if (existingItems) {
@@ -164,37 +208,41 @@ export function GalleryUpload({
       // Get unique existing items
       const uniqueExistingItems = Array.from(existingItemsMap.values());
 
-      // If we have no local items, initialize with existing items
-      if (galleryItems.length === 0) {
-        setGalleryItems(uniqueExistingItems);
-      } else {
-        // Remove items that no longer exist on the server
-        const existingIds = new Set(uniqueExistingItems.map((item) => item.id));
-        const itemsToRemove = galleryItems.filter(
-          (item) => !existingIds.has(item.id)
+      // Remove items that no longer exist on the server
+      const existingIds = new Set(uniqueExistingItems.map((item) => item.id));
+      const itemsToRemove = galleryItems.filter(
+        (item) => !existingIds.has(item.id)
+      );
+
+      if (itemsToRemove.length > 0) {
+        setGalleryItems((prev) =>
+          prev.filter((item) => existingIds.has(item.id))
         );
-
-        if (itemsToRemove.length > 0) {
-          setGalleryItems((prev) =>
-            prev.filter((item) => existingIds.has(item.id))
-          );
-        }
-
-        // Add new items that exist on the server but not locally
-        const localIds = new Set(galleryItems.map((item) => item.id));
-        const itemsToAdd = uniqueExistingItems.filter(
-          (item) => !localIds.has(item.id)
-        );
-
-        if (itemsToAdd.length > 0) {
-          setGalleryItems((prev) => [...prev, ...itemsToAdd]);
-        }
       }
-    } else if (!existingItems && galleryItems.length === 0) {
-      // Clear items only if we don't have any local items and no existing items
-      setGalleryItems([]);
+
+      // Add new items that exist on the server but not locally
+      const localIds = new Set(galleryItems.map((item) => item.id));
+      const itemsToAdd = uniqueExistingItems.filter(
+        (item) => !localIds.has(item.id)
+      );
+
+      if (itemsToAdd.length > 0) {
+        setGalleryItems((prev) => {
+          // Ensure no duplicates in the final array
+          const allItems = [...prev, ...itemsToAdd];
+          const uniqueItemsMap = new Map();
+
+          allItems.forEach((item) => {
+            if (!uniqueItemsMap.has(item.id)) {
+              uniqueItemsMap.set(item.id, item);
+            }
+          });
+
+          return Array.from(uniqueItemsMap.values());
+        });
+      }
     }
-  }, [existingItems, galleryItems.length]);
+  }, [existingItems]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -952,7 +1000,7 @@ export function GalleryUpload({
                   >
                     {galleryItems.map((item, index) => (
                       <Draggable
-                        key={`${item.id}-${index}`}
+                        key={item.id}
                         draggableId={item.id}
                         index={index}
                         isDragDisabled={isReordering}
