@@ -349,11 +349,6 @@ export default function PublicGroupPage() {
                           e.currentTarget.style.display = "none";
                         }}
                       />
-                      {upload.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 text-sm">
-                          {upload.caption}
-                        </div>
-                      )}
                     </div>
                   ))}
               </div>
