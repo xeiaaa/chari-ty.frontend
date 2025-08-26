@@ -9,7 +9,7 @@ interface SelectProps {
 }
 
 const Select = React.forwardRef<HTMLDivElement, SelectProps>(
-  ({ value, onValueChange, children, ...props }, ref) => {
+  ({ children, ...props }, ref) => {
     return (
       <div className="relative" ref={ref} {...props}>
         {children}
@@ -63,7 +63,7 @@ interface SelectItemProps
 }
 
 const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
-  ({ className, value, children, ...props }, ref) => {
+  ({ className, children, ...props }, ref) => {
     return (
       <button
         type="button"
