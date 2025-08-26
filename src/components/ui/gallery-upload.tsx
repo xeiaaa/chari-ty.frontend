@@ -149,13 +149,39 @@ export function GalleryUpload({
     if (existingItems && galleryItems.length === 0) {
       // Only initialize from existingItems if we don't have any local items
       // This prevents reordered items from being reset to their original order
-      const items: GalleryItem[] = existingItems.map((item, index) => ({
-        id: item.id || `existing-${index}`,
-        asset: item.asset,
-        caption: item.caption || "",
-        order: item.order || index,
-      }));
-      setGalleryItems(items);
+      // Deduplicate items by ID to prevent React key conflicts
+      const existingItemsMap = new Map();
+      existingItems.forEach((item, index) => {
+        const id = item.id || `existing-${index}`;
+        if (!existingItemsMap.has(id)) {
+          existingItemsMap.set(id, {
+            id,
+            asset: item.asset,
+            caption: item.caption || "",
+            order: item.order || index,
+          });
+        }
+      });
+
+      const uniqueItems = Array.from(existingItemsMap.values());
+
+      // Debug: Log the deduplication process
+      console.log(
+        "Original existingItems:",
+        existingItems.map((item) => ({
+          id: item.id,
+          filename: item.asset.originalFilename,
+        }))
+      );
+      console.log(
+        "Deduplicated items:",
+        uniqueItems.map((item) => ({
+          id: item.id,
+          filename: item.asset.originalFilename,
+        }))
+      );
+
+      setGalleryItems(uniqueItems);
     } else if (!existingItems && galleryItems.length === 0) {
       // Clear items only if we don't have any local items and no existing items
       setGalleryItems([]);
@@ -201,7 +227,19 @@ export function GalleryUpload({
       );
 
       if (itemsToAdd.length > 0) {
-        setGalleryItems((prev) => [...prev, ...itemsToAdd]);
+        setGalleryItems((prev) => {
+          // Ensure no duplicates in the final array
+          const allItems = [...prev, ...itemsToAdd];
+          const uniqueItemsMap = new Map();
+
+          allItems.forEach((item) => {
+            if (!uniqueItemsMap.has(item.id)) {
+              uniqueItemsMap.set(item.id, item);
+            }
+          });
+
+          return Array.from(uniqueItemsMap.values());
+        });
       }
     }
   }, [existingItems]);
@@ -962,7 +1000,7 @@ export function GalleryUpload({
                   >
                     {galleryItems.map((item, index) => (
                       <Draggable
-                        key={`${item.id}-${index}`}
+                        key={item.id}
                         draggableId={item.id}
                         index={index}
                         isDragDisabled={isReordering}
