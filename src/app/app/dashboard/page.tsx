@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const { user, isLoading: userLoading } = useUser();
   const { selectedAccount } = useAccount();
 
+  console.log({ selectedAccount, user });
+
   const {
     data: dashboardData,
     isLoading: dashboardLoading,
@@ -95,12 +97,15 @@ export default function DashboardPage() {
     );
   }
 
+  const fullName = user.firstName + " " + user.lastName;
+  const message =
+    selectedAccount.type === "individual"
+      ? "Here's an overview of your fundraising activity"
+      : `Here's an overview of the ${selectedAccount.name} group's fundraising activity`;
+
   return (
     <div className="max-w-6xl mx-auto">
-      <PageHeader
-        title={`Welcome, ${selectedAccount.name}!`}
-        message={`Here's an overview of ${selectedAccount.name}'s fundraising activity`}
-      />
+      <PageHeader title={`Welcome, ${fullName}!`} message={message} />
 
       {/* Fundraising Overview */}
       <div className="mb-8">
