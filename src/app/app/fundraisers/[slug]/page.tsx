@@ -469,7 +469,7 @@ export default function FundraiserDetailPage() {
                   fundraiserId={fundraiser.id}
                   link={editingLink}
                   onSuccess={() => {
-                    showSnackbar("Link updated successfully!", "success");
+                    toast.success("Link updated successfully!");
                     setEditingLink(null);
                   }}
                   onError={(error) => showSnackbar(error, "error")}

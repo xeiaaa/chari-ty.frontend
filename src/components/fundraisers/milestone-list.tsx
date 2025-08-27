@@ -20,6 +20,7 @@ import {
 } from "../ui/dialog";
 import { Snackbar, useSnackbar } from "../ui/snackbar";
 import { GalleryUpload, UploadType } from "@/components/ui/gallery-upload";
+import { toast } from "sonner";
 
 // Schema for milestone completion form
 const completeMilestoneSchema = z.object({
@@ -116,7 +117,7 @@ export function MilestoneList({
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setDeleteTarget(null);
       setConfirmOpen(false);
-      showSnackbar("Milestone deleted successfully!", "success");
+      toast.success("Milestone deleted successfully!");
     },
     onError: (error) => {
       showSnackbar(
