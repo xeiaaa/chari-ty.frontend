@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
 import { Skeleton } from "../ui/skeleton";
@@ -12,13 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "../ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "../ui/carousel";
 import Link from "next/link";
 import { Calendar, Users } from "lucide-react";
 
@@ -113,6 +107,22 @@ const getCategoryBadgeStyle = (category: string) => {
 
 export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
   const api = useApi();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+
+  // Add CSS to hide scrollbar
+  React.useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const {
     data: fundraisers,
@@ -128,6 +138,28 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  const handleDotClick = (index: number) => {
+    setCurrentSlide(index);
+    if (carouselRef.current) {
+      const container = carouselRef.current;
+      const slideWidth = container.offsetWidth;
+      container.scrollTo({
+        left: index * slideWidth,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handleScroll = () => {
+    if (carouselRef.current) {
+      const container = carouselRef.current;
+      const slideWidth = container.offsetWidth;
+      const scrollLeft = container.scrollLeft;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentSlide(newIndex);
+    }
+  };
 
   console.log({ fundraisers });
 
@@ -186,8 +218,57 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
-                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
+                {/* Mobile pagination dots for skeleton */}
+                <div className="flex justify-center mt-6 sm:hidden">
+                  <div className="flex space-x-2">
+                    {Array.from({ length: limit }).map((_, index) => (
+                      <div
+                        key={index}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                          index === currentSlide ? "bg-blue-600" : "bg-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom navigation arrows for skeleton */}
+                <button
+                  className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white shadow-lg border rounded-full items-center justify-center transition-all duration-200 hover:scale-105"
+                  disabled
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white shadow-lg border rounded-full items-center justify-center transition-all duration-200 hover:scale-105"
+                  disabled
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
               </Carousel>
             </div>
           </div>
@@ -230,224 +311,280 @@ export const RecentFundraisers = ({ limit = 3 }: RecentFundraisersProps) => {
           </div>
 
           <div className="relative">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
+            {/* Custom scrollable carousel */}
+            <div
+              ref={carouselRef}
+              className="flex overflow-x-auto snap-x snap-mandatory py-4 scrollbar-hide"
+              onScroll={handleScroll}
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
               }}
-              className="w-4/5 md:w-full relative mx-auto"
             >
-              <CarouselContent className="py-4">
-                {fundraisers.items.map((fundraiser) => (
-                  <CarouselItem
-                    key={fundraiser.id}
-                    className="basis-full sm:basis-1/2 lg:basis-1/3"
-                  >
-                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                        {fundraiser.cover?.eagerUrl ? (
-                          <img
-                            src={fundraiser.cover.eagerUrl}
-                            alt={fundraiser.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-                            <span className="text-4xl">
-                              {fundraiser.category === "education" && "📚"}
-                              {fundraiser.category === "health" && "🏥"}
-                              {fundraiser.category === "disaster_relief" &&
-                                "🚨"}
-                              {fundraiser.category === "environment" && "🌱"}
-                              {fundraiser.category === "animals" && "🐾"}
-                              {fundraiser.category === "children" && "👶"}
-                              {fundraiser.category === "community" && "🏘️"}
-                              {fundraiser.category === "arts" && "🎨"}
-                              {fundraiser.category === "sports" && "⚽"}
-                              {fundraiser.category === "food" && "🍽️"}
-                              {fundraiser.category === "housing" && "🏠"}
-                              {fundraiser.category === "technology" && "💻"}
-                              {![
-                                "education",
-                                "health",
-                                "disaster_relief",
-                                "environment",
-                                "animals",
-                                "children",
-                                "community",
-                                "arts",
-                                "sports",
-                                "food",
-                                "housing",
-                                "technology",
-                              ].includes(fundraiser.category) && "💝"}
-                            </span>
-                          </div>
-                        )}
-                        {/* Category badge */}
-                        <div
-                          className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-semibold border ${getCategoryBadgeStyle(
-                            fundraiser.category
-                          )}`}
-                        >
-                          {fundraiser.category.replace("_", " ").toUpperCase()}
+              {fundraisers.items.map((fundraiser) => (
+                <div
+                  key={fundraiser.id}
+                  className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/3 px-2 snap-start"
+                >
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                      {fundraiser.cover?.eagerUrl ? (
+                        <img
+                          src={fundraiser.cover.eagerUrl}
+                          alt={fundraiser.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                          <span className="text-4xl">
+                            {fundraiser.category === "education" && "📚"}
+                            {fundraiser.category === "health" && "🏥"}
+                            {fundraiser.category === "disaster_relief" && "🚨"}
+                            {fundraiser.category === "environment" && "🌱"}
+                            {fundraiser.category === "animals" && "🐾"}
+                            {fundraiser.category === "children" && "👶"}
+                            {fundraiser.category === "community" && "🏘️"}
+                            {fundraiser.category === "arts" && "🎨"}
+                            {fundraiser.category === "sports" && "⚽"}
+                            {fundraiser.category === "food" && "🍽️"}
+                            {fundraiser.category === "housing" && "🏠"}
+                            {fundraiser.category === "technology" && "💻"}
+                            {![
+                              "education",
+                              "health",
+                              "disaster_relief",
+                              "environment",
+                              "animals",
+                              "children",
+                              "community",
+                              "arts",
+                              "sports",
+                              "food",
+                              "housing",
+                              "technology",
+                            ].includes(fundraiser.category) && "💝"}
+                          </span>
                         </div>
-
-                        {/* Verified badge */}
-                        {fundraiser.group?.verified && (
-                          <div className="absolute top-3 left-3">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help">
-                                    ✓ Verified
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>
-                                    The group who posted is a verified group /
-                                    individual / nonprofit org.
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        )}
-
-                        {!fundraiser.isPublic && (
-                          <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium">
-                            Private
-                          </div>
-                        )}
+                      )}
+                      {/* Category badge */}
+                      <div
+                        className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-semibold border ${getCategoryBadgeStyle(
+                          fundraiser.category
+                        )}`}
+                      >
+                        {fundraiser.category.replace("_", " ").toUpperCase()}
                       </div>
-                      <div className="p-4">
-                        <div className="space-y-3 mb-4">
-                          <h3 className="font-semibold text-lg line-clamp-1 text-gray-900">
-                            {fundraiser.title}
-                          </h3>
-                          <p className="text-sm min-h-12 text-gray-600 line-clamp-2 leading-relaxed">
-                            {fundraiser.summary}
-                          </p>
 
-                          {/* Creation date and group info */}
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>
-                                Created{" "}
-                                {new Date(
-                                  fundraiser.createdAt
-                                ).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              <span>
-                                {fundraiser.group ? (
-                                  <div className="flex items-center gap-1">
-                                    <Link
-                                      href={`/groups/${fundraiser.group.slug}`}
-                                      className="text-blue-600 hover:underline font-medium"
-                                    >
-                                      {fundraiser.group.type === "individual"
-                                        ? `${fundraiser.group.owner.firstName} ${fundraiser.group.owner.lastName}`
-                                        : fundraiser.group.name}
-                                    </Link>
-                                    {fundraiser.group.verified && (
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger>
-                                            <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help text-xs px-1 py-0">
-                                              ✓
-                                            </Badge>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>
-                                              The group who posted is a verified
-                                              group / individual / nonprofit
-                                              org.
-                                            </p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    )}
-                                  </div>
-                                ) : fundraiser.user ? (
-                                  <span>
-                                    {fundraiser.user.firstName}{" "}
-                                    {fundraiser.user.lastName}
-                                  </span>
-                                ) : (
-                                  <span>Unknown</span>
-                                )}
-                              </span>
-                            </div>
-                          </div>
+                      {/* Verified badge */}
+                      {fundraiser.group?.verified && (
+                        <div className="absolute top-3 left-3">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help">
+                                  ✓ Verified
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  The group who posted is a verified group /
+                                  individual / nonprofit org.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
-                        {/* BUG */}
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">
-                              Goal
+                      )}
+
+                      {!fundraiser.isPublic && (
+                        <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium">
+                          Private
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3 mb-4">
+                        <h3 className="font-semibold text-lg line-clamp-1 text-gray-900">
+                          {fundraiser.title}
+                        </h3>
+                        <p className="text-sm min-h-12 text-gray-600 line-clamp-2 leading-relaxed">
+                          {fundraiser.summary}
+                        </p>
+
+                        {/* Creation date and group info */}
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>
+                              Created{" "}
+                              {new Date(
+                                fundraiser.createdAt
+                              ).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
                             </span>
-                            <span className="text-sm font-bold text-green-600">
-                              {formatCurrency(
-                                fundraiser.goalAmount,
-                                fundraiser.currency
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            <span>
+                              {fundraiser.group ? (
+                                <div className="flex items-center gap-1">
+                                  <Link
+                                    href={`/groups/${fundraiser.group.slug}`}
+                                    className="text-blue-600 hover:underline font-medium"
+                                  >
+                                    {fundraiser.group.type === "individual"
+                                      ? `${fundraiser.group.owner.firstName} ${fundraiser.group.owner.lastName}`
+                                      : fundraiser.group.name}
+                                  </Link>
+                                  {fundraiser.group.verified && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger>
+                                          <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 cursor-help text-xs px-1 py-0">
+                                            ✓
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>
+                                            The group who posted is a verified
+                                            group / individual / nonprofit org.
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </div>
+                              ) : fundraiser.user ? (
+                                <span>
+                                  {fundraiser.user.firstName}{" "}
+                                  {fundraiser.user.lastName}
+                                </span>
+                              ) : (
+                                <span>Unknown</span>
                               )}
                             </span>
                           </div>
-                          <div className="bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-green-500 h-2 rounded-full"
-                              style={{
-                                width: `${fundraiser.progress.progressPercentage}%`,
-                              }}
-                            />
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-gray-500">
-                            <span>
-                              {formatCurrency(
-                                fundraiser.progress.totalRaised,
-                                fundraiser.currency
-                              )}{" "}
-                              raised
-                            </span>
-                            <span className="capitalize font-medium">
-                              {fundraiser.status}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 mt-4">
-                          <Link
-                            href={`/fundraisers/${fundraiser.slug}`}
-                            className="flex-1"
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
-                            >
-                              View
-                            </Button>
-                          </Link>
                         </div>
                       </div>
+                      {/* BUG */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700">
+                            Goal
+                          </span>
+                          <span className="text-sm font-bold text-green-600">
+                            {formatCurrency(
+                              fundraiser.goalAmount,
+                              fundraiser.currency
+                            )}
+                          </span>
+                        </div>
+                        <div className="bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{
+                              width: `${fundraiser.progress.progressPercentage}%`,
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-gray-500">
+                          <span>
+                            {formatCurrency(
+                              fundraiser.progress.totalRaised,
+                              fundraiser.currency
+                            )}{" "}
+                            raised
+                          </span>
+                          <span className="capitalize font-medium">
+                            {fundraiser.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mt-4">
+                        <Link
+                          href={`/fundraisers/${fundraiser.slug}`}
+                          className="flex-1"
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
+                          >
+                            View
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                  </CarouselItem>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile pagination dots */}
+            <div className="flex justify-center mt-6 sm:hidden">
+              <div className="flex space-x-2">
+                {fundraisers.items.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      index === currentSlide ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                    onClick={() => handleDotClick(index)}
+                  />
                 ))}
-              </CarouselContent>
-              <CarouselPrevious className="absolute -left-12 md:-left-6 top-1/2 -translate-y-1/2" />
-              <CarouselNext className="absolute -right-12 md:-right-6 top-1/2 -translate-y-1/2" />
-            </Carousel>
+              </div>
+            </div>
+
+            {/* Custom navigation arrows for desktop */}
+            <button
+              onClick={() => handleDotClick(Math.max(0, currentSlide - 1))}
+              className="hidden sm:flex absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white shadow-lg border rounded-full items-center justify-center transition-all duration-200 hover:scale-105"
+              disabled={currentSlide === 0}
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() =>
+                handleDotClick(
+                  Math.min(fundraisers.items.length - 1, currentSlide + 1)
+                )
+              }
+              className="hidden sm:flex absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white shadow-lg border rounded-full items-center justify-center transition-all duration-200 hover:scale-105"
+              disabled={currentSlide === fundraisers.items.length - 1}
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
           </div>
 
           {/* View All Button */}
