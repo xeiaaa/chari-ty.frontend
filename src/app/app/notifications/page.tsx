@@ -9,7 +9,7 @@ import {
   Notification,
 } from "@/lib/hooks/use-notifications";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Check, CheckCheck } from "lucide-react";
@@ -192,7 +192,7 @@ export default function NotificationsPage() {
             <div className="text-4xl mb-4">📭</div>
             <h3 className="text-lg font-semibold mb-2">No notifications yet</h3>
             <p className="text-muted-foreground">
-              You'll see your notifications here when they arrive.
+              You&apos;ll see your notifications here when they arrive.
             </p>
           </CardContent>
         </Card>
