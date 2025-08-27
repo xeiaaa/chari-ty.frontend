@@ -30,7 +30,7 @@ const SkeletonLoader = ({
 
   const renderCardSkeleton = () => (
     <div
-      className={`bg-card border border-border rounded-lg shadow-sm p-6 ${className}`}
+      className={`max-w-6xl mx-auto bg-card border border-border rounded-lg shadow-sm p-6 ${className}`}
     >
       <Skeleton className="h-10 w-64 mb-4" />
       <Skeleton className="h-5 w-96 mb-6" />
@@ -52,7 +52,7 @@ const SkeletonLoader = ({
   );
 
   const renderListSkeleton = () => (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 max-w-6xl mx-auto ${className}`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <div
           key={i}
