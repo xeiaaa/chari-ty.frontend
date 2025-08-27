@@ -14,25 +14,29 @@ export async function POST(request: NextRequest) {
   try {
     // Debug environment variables
     console.log("Pusher auth - Environment variables check:", {
-      hasAppId: !!process.env.PUSHER_APP_ID,
-      hasKey: !!process.env.NEXT_PUBLIC_PUSHER_KEY,
-      hasSecret: !!process.env.PUSHER_SECRET,
+      hasAppId: !!process.env.NEXT_PUBLIC_PUSHER_APP_ID,
+      hasKey: !!process.env.NEXT_PUBLIC_PUSHER_API_KEY,
+      hasSecret: !!process.env.NEXT_PUBLIC_PUSHER_SECRET_KEY,
       hasCluster: !!process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
 
     // Validate environment variables
     if (
-      !process.env.PUSHER_APP_ID ||
-      !process.env.NEXT_PUBLIC_PUSHER_KEY ||
-      !process.env.PUSHER_SECRET ||
+      !process.env.NEXT_PUBLIC_PUSHER_APP_ID ||
+      !process.env.NEXT_PUBLIC_PUSHER_API_KEY ||
+      !process.env.NEXT_PUBLIC_PUSHER_SECRET_KEY ||
       !process.env.NEXT_PUBLIC_PUSHER_CLUSTER
     ) {
       console.error("Missing Pusher environment variables:", {
-        PUSHER_APP_ID: process.env.PUSHER_APP_ID ? "SET" : "MISSING",
-        NEXT_PUBLIC_PUSHER_KEY: process.env.NEXT_PUBLIC_PUSHER_KEY
+        NEXT_PUBLIC_PUSHER_APP_ID: process.env.NEXT_PUBLIC_PUSHER_APP_ID
           ? "SET"
           : "MISSING",
-        PUSHER_SECRET: process.env.PUSHER_SECRET ? "SET" : "MISSING",
+        NEXT_PUBLIC_PUSHER_API_KEY: process.env.NEXT_PUBLIC_PUSHER_API_KEY
+          ? "SET"
+          : "MISSING",
+        NEXT_PUBLIC_PUSHER_SECRET_KEY: process.env.NEXT_PUBLIC_PUSHER_SECRET_KEY
+          ? "SET"
+          : "MISSING",
         NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER
           ? "SET"
           : "MISSING",
