@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ReactQueryProvider } from "../components/ui/react-query-provider";
 import { RootLayoutContent } from "@/components/ui/root-layout-content";
 import { AccountProvider } from "@/contexts/account-context";
+import { NotificationProvider } from "@/contexts/notification-context";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -33,8 +34,10 @@ export default function RootLayout({
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <ReactQueryProvider>
             <AccountProvider>
-              <RootLayoutContent>{children}</RootLayoutContent>
-              <Toaster />
+              <NotificationProvider>
+                <RootLayoutContent>{children}</RootLayoutContent>
+                <Toaster />
+              </NotificationProvider>
             </AccountProvider>
           </ReactQueryProvider>
         </body>

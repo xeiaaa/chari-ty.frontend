@@ -97,7 +97,11 @@ export function TeamSwitcher() {
             </CommandGroup>
             <div className="border-t border-border" />
             <CommandGroup>
-              <CommandItem value="create-group" onSelect={handleCreateGroup}>
+              <CommandItem
+                key="create-group"
+                value="create-group"
+                onSelect={handleCreateGroup}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Create Group
               </CommandItem>

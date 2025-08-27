@@ -158,7 +158,7 @@ export default function HomeLayout({
                       // Loading state
                       Array.from({ length: 3 }).map((_, index) => (
                         <div
-                          key={index}
+                          key={`loading-skeleton-${index}`}
                           className="p-3 rounded-lg border border-border"
                         >
                           <div className="flex items-start gap-3">
