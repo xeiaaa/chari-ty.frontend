@@ -220,12 +220,14 @@ export default function EditFundraiserPage() {
           ) : (
             <MilestoneForm
               fundraiserId={fundraiser.id}
+              slug={slug}
               onSuccess={() => toast.success("Milestone created!")}
               onError={(err) => showSnackbar(err, "error")}
             />
           )}
           <MilestoneList
             fundraiserId={fundraiser.id}
+            slug={slug}
             currency={fundraiser.currency}
             onEditMilestone={setEditingMilestone}
           />

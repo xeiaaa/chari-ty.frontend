@@ -69,6 +69,7 @@ export interface Milestone {
 
 interface MilestoneListProps {
   fundraiserId: string;
+  slug: string;
   currency: string;
   onAddMilestone?: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
@@ -77,6 +78,7 @@ interface MilestoneListProps {
 
 export function MilestoneList({
   fundraiserId,
+  slug,
   currency,
   onAddMilestone,
   onEditMilestone,
@@ -114,6 +116,7 @@ export function MilestoneList({
       );
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setDeleteTarget(null);
       setConfirmOpen(false);
@@ -141,6 +144,7 @@ export function MilestoneList({
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setCompletingMilestone(null);
       setCompletionDialogOpen(false);

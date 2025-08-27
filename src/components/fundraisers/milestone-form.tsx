@@ -56,6 +56,7 @@ interface Milestone {
 
 interface MilestoneFormProps {
   fundraiserId: string;
+  slug: string;
   onSuccess?: () => void;
   onError?: (error: string) => void;
 }
@@ -71,6 +72,7 @@ interface EditMilestoneFormProps {
 
 export function MilestoneForm({
   fundraiserId,
+  slug,
   onSuccess,
   onError,
 }: MilestoneFormProps) {
@@ -107,6 +109,7 @@ export function MilestoneForm({
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       reset();
       setShowForm(false);
@@ -246,7 +249,8 @@ export function EditMilestoneForm({
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["milestones", slug] });
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
+      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setError(null);
       onSuccess?.();
     },
