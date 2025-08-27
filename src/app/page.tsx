@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
-  <div className="min-h-[calc(100vh-69px)] flex flex-col items-center justify-center bg-background px-4">
-    <main className="flex items-center gap-8 max-w-[1000px] flex-wrap justify-center max-[700px]:h-auto h-[calc(100vh-69px)] pt-12 md:pt-0 px-4">
+  <div className="min-h-[calc(100vh-69px)] flex flex-col items-center justify-center bg-background">
+    <main className="flex items-center gap-8 max-w-[1000px] flex-wrap justify-center max-[700px]:h-auto h-[calc(100vh-69px)] pt-12 md:pt-0 px-8">
       <div className="flex-1 min-w-[300px] text-center sm:text-left">
         <h1 className="text-5xl font-bold mb-6 text-gray-900">
           Welcome to{" "}
@@ -84,7 +84,7 @@ const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
     <CategoryCards />
 
     {/* Vision & Goals Section */}
-    <section className="w-full py-16 bg-gray-50/50">
+    <section className="w-full py-16 bg-gray-50/50 px-4">
       <div className="w-full px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -167,7 +167,7 @@ const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
     </section>
 
     {/* Our Commitments Section - Available for all users */}
-    <section className="w-full py-16">
+    <section className="w-full py-16 px-4">
       <div className="w-full px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
