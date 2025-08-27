@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useInvitations, Invitation } from "@/lib/hooks/use-invitations";
 import { useAcceptInvitation } from "@/lib/hooks/use-accept-invitation";
 import { useAccount } from "@/contexts/account-context";
@@ -86,7 +87,14 @@ export default function InvitationsPage() {
                     ) : (
                       <Users className="h-5 w-5" />
                     )}
-                    {invitation.name}
+                    <Link
+                      href={`/groups/${invitation.name
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")}`}
+                      className="hover:underline text-primary"
+                    >
+                      {invitation.name}
+                    </Link>
                   </CardTitle>
                   <Badge variant="secondary">{invitation.role}</Badge>
                 </div>
