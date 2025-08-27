@@ -14,6 +14,7 @@ import {
   Shield,
   BarChart3,
   CheckCircle,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -21,6 +22,13 @@ import { useUser as useClerkUser } from "@clerk/nextjs";
 import { useUser } from "@/lib/hooks/use-user";
 import { useRouter } from "next/navigation";
 import { useSignOut } from "@/lib/hooks/use-sign-out";
+import {
+  useNotifications,
+  useUnreadCount,
+  useMarkAllAsRead,
+  useMarkAsRead,
+  Notification,
+} from "@/lib/hooks/use-notifications";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -57,6 +65,11 @@ export default function AdminLayout({
   const { user: appUser, isLoading: appUserLoading } = useUser();
   const { signOut } = useSignOut();
   const router = useRouter();
+  const { data: notifications, isLoading: notificationsLoading } =
+    useNotifications(1, 10);
+  const { data: unreadCount, isLoading: unreadCountLoading } = useUnreadCount();
+  const markAllAsRead = useMarkAllAsRead();
+  const markAsRead = useMarkAsRead();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -115,6 +128,230 @@ export default function AdminLayout({
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
+            {/* Notification Bell */}
+            {!isUserLoaded ? (
+              <Skeleton className="h-8 w-8 rounded-full" />
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative h-8 w-8"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {/* Notification badge */}
+                    {!unreadCountLoading &&
+                      unreadCount &&
+                      unreadCount.count > 0 && (
+                        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                          {unreadCount.count > 99 ? "99+" : unreadCount.count}
+                        </span>
+                      )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-80 h-96 flex flex-col"
+                >
+                  <div className="flex items-center justify-between">
+                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      disabled={
+                        markAllAsRead.isPending ||
+                        !unreadCount ||
+                        unreadCount.count === 0
+                      }
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        markAllAsRead.mutate();
+                      }}
+                    >
+                      {markAllAsRead.isPending
+                        ? "Marking..."
+                        : "Mark all as read"}
+                    </Button>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                    {notificationsLoading ? (
+                      // Loading state
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="p-3 rounded-lg border border-border"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-2 h-2 rounded-full bg-gray-300 mt-2 flex-shrink-0 animate-pulse" />
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                              <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse" />
+                              <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : notifications &&
+                      notifications.notifications &&
+                      notifications.notifications.length > 0 ? (
+                      // Real notifications
+                      notifications.notifications.map((notification) => {
+                        const getNotificationContent = (
+                          notification: Notification
+                        ) => {
+                          const data = notification.data;
+                          switch (notification.type) {
+                            case "donation_received":
+                              return {
+                                title: "New donation received",
+                                message: `${data.donorName} donated ${data.currency}${data.amount} to "${data.fundraiserTitle}"`,
+                                color: "bg-green-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "fundraiser_goal_reached":
+                              return {
+                                title: "Fundraiser goal reached!",
+                                message: `Congratulations! "${data.fundraiserTitle}" has reached its goal of ${data.currency}${data.goalAmount}!`,
+                                color: "bg-yellow-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "group_invitation":
+                              return {
+                                title: "Group invitation",
+                                message: `${data.inviterName} invited you to join "${data.groupName}"`,
+                                color: "bg-blue-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "invitation_accepted":
+                              return {
+                                title: "Invitation accepted",
+                                message: `${data.acceptedBy} accepted the invitation to join "${data.groupName}" as ${data.role}`,
+                                color: "bg-green-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "verification_request_submitted":
+                              return {
+                                title: "Verification request submitted",
+                                message: `${data.submittedBy} submitted a verification request for "${data.groupName}"`,
+                                color: "bg-purple-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "verification_approved":
+                              return {
+                                title: "Verification approved",
+                                message: `Your verification request for "${data.groupName}" has been approved!`,
+                                color: "bg-green-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "verification_rejected":
+                              return {
+                                title: "Verification rejected",
+                                message: `Your verification request for "${data.groupName}" has been rejected.`,
+                                color: "bg-red-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "user_removed_from_group":
+                              return {
+                                title: "Removed from group",
+                                message: `${data.removedBy} removed you from "${data.groupName}"`,
+                                color: "bg-red-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            case "user_role_changed":
+                              return {
+                                title: "Role changed",
+                                message: `${data.changedBy} changed your role in "${data.groupName}" from ${data.oldRole} to ${data.newRole}`,
+                                color: "bg-blue-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                            default:
+                              return {
+                                title: "Notification",
+                                message: "You have a new notification",
+                                color: "bg-gray-500",
+                                time: new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString(),
+                              };
+                          }
+                        };
+
+                        const content = getNotificationContent(notification);
+
+                        return (
+                          <div
+                            key={notification.id}
+                            className={`p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer ${
+                              !notification.read ? "bg-blue-50/50" : ""
+                            }`}
+                            onClick={() => {
+                              if (!notification.read) {
+                                markAsRead.mutate(notification.id);
+                              }
+                            }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`w-2 h-2 rounded-full ${content.color} mt-2 flex-shrink-0`}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium">
+                                  {content.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {content.message}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {content.time}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      // Empty state
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        No notifications yet
+                      </div>
+                    )}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    asChild
+                    className="justify-center text-sm text-muted-foreground flex-shrink-0"
+                  >
+                    <Link href="/app/notifications">
+                      View all notifications
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* User Avatar */}
             {!isUserLoaded ? (
               <Skeleton className="h-8 w-8 rounded-full" />
             ) : (
