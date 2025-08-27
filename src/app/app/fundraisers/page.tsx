@@ -115,7 +115,7 @@ export default function FundraisersPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start flex-col md:flex-row">
           <PageHeader
             title="Fundraisers"
             message={
