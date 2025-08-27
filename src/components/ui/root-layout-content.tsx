@@ -14,7 +14,7 @@ export function RootLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       {!isAuthenticatedRoute && <PublicHeader />}
-      {children}
+      <main className={!isAuthenticatedRoute ? "pt-16" : ""}>{children}</main>
     </>
   );
 }

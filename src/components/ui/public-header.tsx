@@ -20,7 +20,7 @@ export function PublicHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 h-16 border-b border-border px-4 lg:px-8 flex items-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 left-0 right-0 z-30 h-16 border-b border-border px-4 lg:px-8 flex items-center bg-white">
       <div className="flex flex-row gap-4 justify-center items-center">
         <div className="h-16 items-center flex-shrink-0 hidden lg:flex">
           <Link

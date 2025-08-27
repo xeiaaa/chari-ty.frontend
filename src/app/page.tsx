@@ -8,7 +8,7 @@ import Link from "next/link";
 
 const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
   <div className="min-h-[calc(100vh-69px)] flex flex-col items-center justify-center bg-background">
-    <main className="flex flex-col lg:flex-row items-center gap-12 sm:gap-16 lg:gap-20 max-w-[1200px] mx-auto px-4 lg:px-8 py-32 sm:py-20 lg:pt-24 md:min-h-[calc(100vh-69px)]">
+    <main className="flex flex-col lg:flex-row items-center gap-12 sm:gap-16 lg:gap-20 max-w-[1200px] mx-auto px-4 lg:px-8 py-16 sm:py-20 lg:pt-24 md:min-h-[calc(100vh-69px)]">
       <div className="flex-1 w-full lg:min-w-[400px] text-center lg:text-left order-2 lg:order-1">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-8 sm:mb-10 lg:mb-12 text-gray-900 leading-tight">
           Welcome to{" "}
