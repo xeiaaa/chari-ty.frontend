@@ -8,9 +8,9 @@ import Link from "next/link";
 
 const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
   <div className="min-h-[calc(100vh-69px)] flex flex-col items-center justify-center bg-background">
-    <main className="flex items-center gap-8 max-w-[1000px] flex-wrap justify-center max-[700px]:h-auto h-[calc(100vh-69px)] pt-12 md:pt-0 px-8">
-      <div className="flex-1 min-w-[300px] text-center sm:text-left">
-        <h1 className="text-5xl font-bold mb-6 text-gray-900">
+    <main className="flex flex-col lg:flex-row items-center gap-12 sm:gap-16 lg:gap-20 max-w-[1200px] mx-auto px-4 lg:px-8 py-32 sm:py-20 lg:pt-24 md:min-h-[calc(100vh-69px)]">
+      <div className="flex-1 w-full lg:min-w-[400px] text-center lg:text-left order-2 lg:order-1">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-8 sm:mb-10 lg:mb-12 text-gray-900 leading-tight">
           Welcome to{" "}
           <span className="bg-gradient-to-b from-blue-300 to-blue-800 bg-clip-text text-transparent">
             Chari
@@ -19,26 +19,26 @@ const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
             ty
           </span>
         </h1>
-        <p className="text-xl mb-8 text-gray-700 leading-relaxed">
+        <p className="text-lg sm:text-xl lg:text-2xl mb-10 sm:mb-12 lg:mb-16 text-gray-700 leading-relaxed max-w-2xl mx-auto lg:mx-0">
           Empowering communities through giving. Join us to make a
           difference—sign in or register to get started!
         </p>
-        <div className="flex gap-4 justify-center sm:justify-start">
+        <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 lg:gap-10 justify-center lg:justify-start">
           {!isAuthenticated && (
             <>
-              <Link href="/signup">
+              <Link href="/signup" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-10 sm:px-12 lg:px-16 py-5 sm:py-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 >
                   Get Started
                 </Button>
               </Link>
-              <Link href="/fundraisers">
+              <Link href="/fundraisers" className="w-full sm:w-auto">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="px-8 py-3 font-semibold border-2 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-10 sm:px-12 lg:px-16 py-5 sm:py-6 font-semibold border-2 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
                 >
                   Explore Causes
                 </Button>
@@ -47,19 +47,19 @@ const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
           )}
           {isAuthenticated && (
             <>
-              <Link href="/app/dashboard">
+              <Link href="/app/dashboard" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-10 sm:px-12 lg:px-16 py-5 sm:py-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 >
                   Go to Dashboard
                 </Button>
               </Link>
-              <Link href="/fundraisers">
+              <Link href="/fundraisers" className="w-full sm:w-auto">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="px-8 py-3 font-semibold border-2 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-10 sm:px-12 lg:px-16 py-5 sm:py-6 font-semibold border-2 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
                 >
                   Explore Causes
                 </Button>
@@ -68,11 +68,11 @@ const HomeContent = ({ isAuthenticated }: { isAuthenticated: boolean }) => (
           )}
         </div>
       </div>
-      <div className="flex-1 min-w-[300px] flex justify-center">
+      <div className="flex-1 w-full lg:min-w-[400px] flex justify-center order-1 lg:order-2">
         <img
           src="/images/heart.png"
           alt="Charity and giving concept illustration"
-          className="max-w-[80%] h-auto opacity-90"
+          className="w-64 sm:w-80 lg:w-96 xl:w-[420px] h-auto opacity-90"
         />
       </div>
     </main>
