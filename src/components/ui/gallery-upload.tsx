@@ -839,13 +839,13 @@ export function GalleryUpload({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
             {title || getDefaultTitle(type)}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground mt-2 leading-relaxed">
             {description || getDefaultDescription(type)}
           </p>
         </div>
@@ -854,27 +854,29 @@ export function GalleryUpload({
       {/* Upload Area */}
       {showDragDrop && (
         <Card
-          className={`border-2 border-dashed transition-colors ${
+          className={`border-2 border-dashed transition-all duration-200 ease-in-out ${
             isDragOver
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25"
+              ? "border-primary bg-primary/5 shadow-lg scale-[1.02]"
+              : "border-muted-foreground/30 hover:border-muted-foreground/40 hover:bg-muted/30"
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
         >
-          <CardContent className="p-8">
+          <CardContent className="p-6 sm:p-8">
             <div className="text-center">
-              <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h4 className="text-lg font-medium mb-2">
+              <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-muted/50 mb-6">
+                <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+              </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
                 {type === UploadType.COVER_IMAGE
                   ? "Upload Image"
                   : "Upload Files"}
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 leading-relaxed">
                 Drag and drop files here, or click to browse
               </p>
-              <p className="text-xs text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-6 px-4 py-2 bg-muted/30 rounded-md inline-block">
                 {getSupportedFormats(type)}
               </p>
               <Button
@@ -886,6 +888,7 @@ export function GalleryUpload({
                   document.getElementById("gallery-upload")?.click();
                 }}
                 disabled={uploadingFiles.size > 0}
+                className="px-6 py-2.5 font-medium shadow-sm hover:shadow-md transition-all duration-200"
               >
                 {uploadingFiles.size > 0 ? (
                   <>
@@ -900,8 +903,8 @@ export function GalleryUpload({
                 )}
               </Button>
               {uploadingFiles.size > 0 && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground">
+                <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <p className="text-sm text-primary-foreground">
                     You can continue adding more files while these upload
                   </p>
                 </div>
@@ -921,11 +924,19 @@ export function GalleryUpload({
 
       {/* Gallery Items */}
       {galleryItems.length > 0 && (
-        <div className="space-y-4 relative ">
-          <div className="flex items-center justify-between">
-            <h4 className="text-md font-medium">Items</h4>
+        <div className="space-y-4 sm:space-y-6 relative">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div>
+              <h4 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
+                Gallery Items
+              </h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                {galleryItems.length} item{galleryItems.length !== 1 ? "s" : ""}{" "}
+                in your gallery
+              </p>
+            </div>
             {isReordering && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Updating order...</span>
               </div>
@@ -941,7 +952,7 @@ export function GalleryUpload({
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="space-y-3"
+                    className="space-y-2 sm:space-y-3"
                   >
                     {galleryItems.map((item, index) => (
                       <Draggable
@@ -955,36 +966,43 @@ export function GalleryUpload({
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             onDragStart={handleDragStart}
-                            className={`flex items-center gap-4 p-4 border rounded-lg bg-card ${
-                              snapshot.isDragging ? "shadow-lg" : ""
+                            className={`flex flex-col md:flex-row md:items-center gap-3 sm:gap-4 p-4 sm:p-5 border border-border/50 rounded-xl bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-200 ${
+                              snapshot.isDragging
+                                ? "shadow-xl scale-[1.02] ring-2 ring-primary/20"
+                                : "hover:shadow-md"
                             } ${isReordering ? "opacity-75" : ""}`}
                           >
                             {/* Drag Handle */}
                             <div
                               {...provided.dragHandleProps}
-                              className={`flex-shrink-0 ${
+                              className={`flex-shrink-0 p-2 rounded-lg hover:bg-muted/50 transition-colors ${
                                 isReordering
                                   ? "cursor-not-allowed opacity-50"
                                   : "cursor-grab active:cursor-grabbing"
                               }`}
                             >
                               {isReordering ? (
-                                <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                                <Loader2 className="h-4 w-4 text-primary animate-spin" />
                               ) : (
-                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                               )}
                             </div>
 
                             {/* Image Preview */}
-                            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                            <div className="relative w-full h-32 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-muted/50 flex-shrink-0 ring-1 ring-border/30">
                               <img
                                 src={item.asset.eagerUrl || item.asset.url}
                                 alt={item.asset.originalFilename}
                                 className="w-full h-full object-cover"
                               />
                               {uploadingFiles.has(item.id) && (
-                                <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                                  <Loader2 className="h-6 w-6 animate-spin" />
+                                <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center">
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                    <span className="text-xs text-muted-foreground">
+                                      Processing...
+                                    </span>
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -1003,15 +1021,16 @@ export function GalleryUpload({
                                         )
                                       }
                                       placeholder="Add a caption..."
-                                      className="min-h-[60px]"
+                                      className="min-h-[60px] text-sm"
                                     />
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                       <Button
                                         size="sm"
                                         onClick={() =>
                                           handleCaptionSave(item.id)
                                         }
                                         disabled={updateItemMutation.isPending}
+                                        className="w-full sm:w-auto"
                                       >
                                         {updateItemMutation.isPending ? (
                                           <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -1024,6 +1043,7 @@ export function GalleryUpload({
                                         size="sm"
                                         variant="outline"
                                         onClick={() => setEditingCaption(null)}
+                                        className="w-full sm:w-auto"
                                       >
                                         Cancel
                                       </Button>
@@ -1031,22 +1051,25 @@ export function GalleryUpload({
                                   </div>
                                 ) : (
                                   <div className="space-y-1">
-                                    <p className="text-sm font-medium truncate">
+                                    <p className="text-xs sm:text-sm font-medium ">
                                       {item.asset.originalFilename}
                                     </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {item.caption || "No caption"}
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() =>
-                                          setEditingCaption(item.id)
-                                        }
-                                      >
-                                        <Edit3 className="h-3 w-3" />
-                                      </Button>
+                                    <div className="flex items-center gap-4">
+                                      <p className="text-xs sm:text-sm text-muted-foreground">
+                                        {item.caption || "No caption"}
+                                      </p>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() =>
+                                            setEditingCaption(item.id)
+                                          }
+                                          className="p-1 sm:p-2"
+                                        >
+                                          <Edit3 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -1059,12 +1082,12 @@ export function GalleryUpload({
                               variant="ghost"
                               onClick={() => handleItemDelete(item.id)}
                               disabled={deletingItemId === item.id}
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive p-1 sm:p-2 self-end sm:self-auto"
                             >
                               {deletingItemId === item.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                               ) : (
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               )}
                             </Button>
                           </div>
@@ -1077,14 +1100,14 @@ export function GalleryUpload({
               </Droppable>
             </DragDropContext>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 sm:space-y-4">
               {galleryItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 p-4 border rounded-lg bg-card"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 sm:p-5 border border-border/50 rounded-xl bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-200 hover:shadow-md"
                 >
                   {/* Image Preview */}
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                  <div className="relative w-full h-32 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-muted/50 flex-shrink-0 ring-1 ring-border/30">
                     <img
                       src={item.asset.eagerUrl || item.asset.url}
                       alt={item.asset.originalFilename}
@@ -1095,11 +1118,11 @@ export function GalleryUpload({
                   {/* Caption */}
                   {showCaptions && (
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-sm sm:text-base font-medium text-foreground">
                         {item.asset.originalFilename}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.caption || "No caption"}
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        {item.caption || "No caption added yet"}
                       </p>
                     </div>
                   )}
@@ -1110,7 +1133,7 @@ export function GalleryUpload({
                     variant="ghost"
                     onClick={() => handleItemDelete(item.id)}
                     disabled={deletingItemId === item.id}
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive p-2 h-8 w-8 self-end sm:self-auto hover:bg-destructive/10 transition-colors"
                   >
                     {deletingItemId === item.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1131,10 +1154,10 @@ export function GalleryUpload({
         return (
           <div
             key={fileId}
-            className="flex items-center gap-4 p-4 border rounded-lg bg-card"
+            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 sm:p-5 border border-primary/20 rounded-xl bg-primary/5 backdrop-blur-sm"
           >
             {/* Image Preview */}
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+            <div className="relative w-full h-32 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-muted/50 flex-shrink-0 ring-1 ring-primary/30">
               {preview ? (
                 <img
                   src={preview}
@@ -1144,14 +1167,21 @@ export function GalleryUpload({
               ) : (
                 <Skeleton className="w-full h-full" />
               )}
-              <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm flex items-center justify-center">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-xs text-primary-foreground font-medium">
+                    Uploading...
+                  </span>
+                </div>
               </div>
             </div>
 
             <div className="flex-1">
-              <p className="text-sm font-medium">Uploading...</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm sm:text-base font-medium text-primary-foreground">
+                Processing file...
+              </p>
+              <p className="text-xs sm:text-sm text-primary-foreground/80 mt-1">
                 {fileId.split("-")[0]} {/* Show filename */}
               </p>
             </div>

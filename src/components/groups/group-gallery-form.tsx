@@ -51,23 +51,27 @@ export function GroupGalleryForm({
     }));
 
   return (
-    <GalleryUpload
-      type={
-        type === "verification"
-          ? UploadType.GROUP_VERIFICATION
-          : UploadType.GROUP_GALLERY
-      }
-      entityId={groupId}
-      entitySlug={groupSlug}
-      existingItems={transformedItems}
-      uploadEndpoint={`/groups/${groupId}/uploads`}
-      updateEndpoint={`/groups/${groupId}/uploads/{id}`}
-      deleteEndpoint={`/groups/${groupId}/uploads/{id}`}
-      reorderEndpoint={`/groups/${groupId}/uploads/reorder`}
-      onSuccess={onSuccess}
-      onError={onError}
-      queryKeys={["group", groupSlug]}
-      acceptTypes={type === "verification" ? "image/*,.pdf" : "image/*"}
-    />
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <GalleryUpload
+          type={
+            type === "verification"
+              ? UploadType.GROUP_VERIFICATION
+              : UploadType.GROUP_GALLERY
+          }
+          entityId={groupId}
+          entitySlug={groupSlug}
+          existingItems={transformedItems}
+          uploadEndpoint={`/groups/${groupId}/uploads`}
+          updateEndpoint={`/groups/${groupId}/uploads/{id}`}
+          deleteEndpoint={`/groups/${groupId}/uploads/{id}`}
+          reorderEndpoint={`/groups/${groupId}/uploads/reorder`}
+          onSuccess={onSuccess}
+          onError={onError}
+          queryKeys={["group", groupSlug]}
+          acceptTypes={type === "verification" ? "image/*,.pdf" : "image/*"}
+        />
+      </div>
+    </div>
   );
 }

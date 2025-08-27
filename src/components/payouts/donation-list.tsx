@@ -52,18 +52,22 @@ const DonationList = ({
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-        <p className="text-destructive">Failed to load donations</p>
+      <div className="text-center py-6 sm:py-8">
+        <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-destructive mx-auto mb-2" />
+        <p className="text-sm sm:text-base text-destructive">
+          Failed to load donations
+        </p>
       </div>
     );
   }
 
   if (donations.length === 0) {
     return (
-      <div className="text-center py-8">
-        <Receipt className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-        <p className="text-muted-foreground">No donations found</p>
+      <div className="text-center py-6 sm:py-8">
+        <Receipt className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground mx-auto mb-2" />
+        <p className="text-sm sm:text-base text-muted-foreground">
+          No donations found
+        </p>
       </div>
     );
   }
@@ -111,9 +115,12 @@ const DonationList = ({
   return (
     <div className="border rounded-lg overflow-hidden">
       {/* Mobile: Card view for table mode */}
-      <div className="block sm:hidden space-y-3">
+      <div className="block sm:hidden space-y-2 sm:space-y-3">
         {donations.map((donation) => (
-          <div key={donation.id} className="border-b p-3 sm:p-4">
+          <div
+            key={donation.id}
+            className="border-b p-3 sm:p-4 last:border-b-0"
+          >
             <div className="space-y-2">
               <div className="flex flex-col gap-1">
                 <span className="font-medium text-sm">
@@ -129,7 +136,7 @@ const DonationList = ({
               <div className="flex items-center justify-between">
                 <Badge
                   variant={getStatusBadgeVariant(donation.status)}
-                  className="text-xs"
+                  className="text-xs px-2 py-1"
                 >
                   {donation.status}
                 </Badge>

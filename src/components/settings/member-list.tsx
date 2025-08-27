@@ -80,9 +80,9 @@ const MemberList = ({
                 currentUserId && member.user && member.user.id === currentUserId
                   ? "bg-muted/50 border-primary/20"
                   : ""
-              }`}
+              } flex-col md:flex-row gap-4`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-col md:flex-row">
                 <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
                   {member.user?.avatarUrl ? (
                     <img
@@ -95,8 +95,8 @@ const MemberList = ({
                   )}
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <p className="font-medium md:text-left text-center">
                       {member.user
                         ? `${member.user.firstName} ${member.user.lastName}`
                         : member.invitedName || "Unknown User"}
@@ -110,75 +110,79 @@ const MemberList = ({
                         </Badge>
                       )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground md:text-left text-center">
                     {member.user?.email ||
                       member.invitedEmail ||
                       "No email provided"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground md:text-left text-center">
                     Joined: {new Date(member.joinedAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    member.role === "owner"
-                      ? "default"
-                      : member.role === "admin"
-                      ? "secondary"
-                      : "outline"
-                  }
-                >
-                  {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                </Badge>
-                <Badge
-                  variant={
-                    member.status === "active"
-                      ? "default"
-                      : member.status === "invited"
-                      ? "secondary"
-                      : "destructive"
-                  }
-                >
-                  {member.status.charAt(0).toUpperCase() +
-                    member.status.slice(1)}
-                </Badge>
-
-                {/* Role management */}
-                {canManageMember(member) && (
-                  <select
-                    value={member.role}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                      onUpdateRole(member.id, e.target.value)
+              <div className="flex items-center flex-col md:flex-row gap-4">
+                <div className="flex gap-2">
+                  <Badge
+                    variant={
+                      member.role === "owner"
+                        ? "default"
+                        : member.role === "admin"
+                        ? "secondary"
+                        : "outline"
                     }
-                    disabled={isUpdatingRole}
-                    className="w-24 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm"
                   >
-                    <option value="admin">Admin</option>
-                    <option value="editor">Editor</option>
-                    <option value="viewer">Viewer</option>
-                  </select>
-                )}
-
-                {/* Remove button */}
-                {canManageMember(member) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      onRemoveMember(
-                        member.id,
-                        member.user
-                          ? `${member.user.firstName} ${member.user.lastName}`
-                          : member.invitedName || "Unknown User"
-                      )
+                    {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                  </Badge>
+                  <Badge
+                    variant={
+                      member.status === "active"
+                        ? "default"
+                        : member.status === "invited"
+                        ? "secondary"
+                        : "destructive"
                     }
-                    disabled={isRemovingMember}
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+                    {member.status.charAt(0).toUpperCase() +
+                      member.status.slice(1)}
+                  </Badge>
+                </div>
+
+                <div className="flex gap-2">
+                  {/* Role management */}
+                  {canManageMember(member) && (
+                    <select
+                      value={member.role}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                        onUpdateRole(member.id, e.target.value)
+                      }
+                      disabled={isUpdatingRole}
+                      className="w-24 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm"
+                    >
+                      <option value="admin">Admin</option>
+                      <option value="editor">Editor</option>
+                      <option value="viewer">Viewer</option>
+                    </select>
+                  )}
+
+                  {/* Remove button */}
+                  {canManageMember(member) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        onRemoveMember(
+                          member.id,
+                          member.user
+                            ? `${member.user.firstName} ${member.user.lastName}`
+                            : member.invitedName || "Unknown User"
+                        )
+                      }
+                      disabled={isRemovingMember}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           ))
