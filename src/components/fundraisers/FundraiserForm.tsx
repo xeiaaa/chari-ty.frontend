@@ -390,7 +390,7 @@ export function FundraiserForm({
               <img
                 src={coverImagePreview}
                 alt="Cover preview"
-                className="w-full h-48 object-cover rounded-lg border"
+                className="w-full max-h-96 object-contain rounded-lg border"
               />
               <Button
                 type="button"
@@ -489,8 +489,12 @@ export function FundraiserForm({
 
       {/* Submit Button */}
       <div className="flex justify-end pt-4">
-        <Button type="submit" disabled={loading || !isValid}>
-          {loading ? "Saving..." : submitLabel}
+        <Button type="submit" disabled={loading || !isValid || isUploading}>
+          {loading
+            ? "Saving..."
+            : isUploading
+            ? "Uploading Cover photo..."
+            : submitLabel}
         </Button>
       </div>
     </form>
