@@ -30,6 +30,7 @@ import {
 } from "@/components/fundraisers/FundraiserForm";
 import { GalleryForm } from "@/components/fundraisers/gallery-form";
 import SkeletonLoader from "@/components/common/skeleton-loader";
+import { toast } from "sonner";
 
 export default function EditFundraiserPage() {
   const { slug } = useParams() as { slug: string };
@@ -198,9 +199,6 @@ export default function EditFundraiserPage() {
             fundraiserId={fundraiser.id}
             slug={slug}
             existingGallery={fundraiser.fundraiserGallery}
-            onSuccess={() =>
-              showSnackbar("Gallery updated successfully!", "success")
-            }
             onError={(err) => showSnackbar(err, "error")}
           />
         </div>
@@ -210,9 +208,10 @@ export default function EditFundraiserPage() {
           {editingMilestone ? (
             <EditMilestoneForm
               slug={slug}
+              fundraiserId={fundraiser.id}
               milestone={editingMilestone}
               onSuccess={() => {
-                showSnackbar("Milestone updated successfully!", "success");
+                toast.success("Milestone updated successfully!");
                 setEditingMilestone(null);
               }}
               onError={(err) => showSnackbar(err, "error")}
@@ -221,12 +220,14 @@ export default function EditFundraiserPage() {
           ) : (
             <MilestoneForm
               fundraiserId={fundraiser.id}
-              onSuccess={() => showSnackbar("Milestone created!", "success")}
+              slug={slug}
+              onSuccess={() => toast.success("Milestone created!")}
               onError={(err) => showSnackbar(err, "error")}
             />
           )}
           <MilestoneList
             fundraiserId={fundraiser.id}
+            slug={slug}
             currency={fundraiser.currency}
             onEditMilestone={setEditingMilestone}
           />
@@ -239,7 +240,7 @@ export default function EditFundraiserPage() {
               fundraiserId={fundraiser.id}
               link={editingLink}
               onSuccess={() => {
-                showSnackbar("Link updated successfully!", "success");
+                toast.success("Link updated successfully!");
                 setEditingLink(null);
               }}
               onError={(err) => showSnackbar(err, "error")}
@@ -248,7 +249,7 @@ export default function EditFundraiserPage() {
           ) : (
             <LinkForm
               fundraiserId={fundraiser.id}
-              onSuccess={() => showSnackbar("Link created!", "success")}
+              onSuccess={() => toast.success("Link created!")}
               onError={(err) => showSnackbar(err, "error")}
             />
           )}

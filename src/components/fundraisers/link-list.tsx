@@ -17,6 +17,7 @@ import {
 } from "../ui/dialog";
 import type { Link } from "./link-form";
 import { Fundraiser } from "@/app/app/fundraisers/[slug]/page";
+import { toast } from "sonner";
 
 interface LinkListProps {
   fundraiser: Fundraiser;
@@ -46,7 +47,7 @@ export function LinkList({ fundraiser, onEditLink }: LinkListProps) {
       queryClient.invalidateQueries({ queryKey: ["links", fundraiser.id] });
       setDeleteTarget(null);
       setConfirmOpen(false);
-      showSnackbar("Link deleted successfully!", "success");
+      toast.success("Link deleted successfully!");
     },
     onError: (error) => {
       showSnackbar(

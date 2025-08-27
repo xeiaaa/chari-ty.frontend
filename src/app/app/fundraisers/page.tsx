@@ -115,7 +115,7 @@ export default function FundraisersPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start flex-col md:flex-row">
           <PageHeader
             title="Fundraisers"
             message={
@@ -124,9 +124,14 @@ export default function FundraisersPage() {
                 : `${selectedAccount.name} fundraisers`
             }
           />
-          <Link href="/app/fundraisers/create">
-            <Button>Create Fundraiser</Button>
-          </Link>
+
+          {data?.items && data.items.length > 0 && (
+            <Link href="/app/fundraisers/create">
+              <Button className="text-sm px-3 py-2 md:text-base md:px-4 md:py-2">
+                Create Fundraiser
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

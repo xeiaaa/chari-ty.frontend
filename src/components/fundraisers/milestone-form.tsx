@@ -56,12 +56,14 @@ interface Milestone {
 
 interface MilestoneFormProps {
   fundraiserId: string;
+  slug: string;
   onSuccess?: () => void;
   onError?: (error: string) => void;
 }
 
 interface EditMilestoneFormProps {
   slug: string;
+  fundraiserId: string;
   milestone: Milestone;
   onSuccess?: () => void;
   onError?: (error: string) => void;
@@ -70,6 +72,7 @@ interface EditMilestoneFormProps {
 
 export function MilestoneForm({
   fundraiserId,
+  slug,
   onSuccess,
   onError,
 }: MilestoneFormProps) {
@@ -106,6 +109,7 @@ export function MilestoneForm({
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       reset();
       setShowForm(false);
@@ -209,6 +213,7 @@ export function MilestoneForm({
 
 export function EditMilestoneForm({
   slug,
+  fundraiserId,
   milestone,
   onSuccess,
   onError,
@@ -238,13 +243,14 @@ export function EditMilestoneForm({
   const updateMilestoneMutation = useMutation({
     mutationFn: async (data: UpdateMilestoneForm) => {
       const response = await api.patch(
-        `/fundraisers/${slug}/milestones/${milestone.id}`,
+        `/fundraisers/${fundraiserId}/milestones/${milestone.id}`,
         data
       );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["milestones", slug] });
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
+      queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setError(null);
       onSuccess?.();
     },

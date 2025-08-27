@@ -23,17 +23,6 @@ import { Label } from "@/components/ui/label";
 
 import { useApi } from "@/lib/api";
 import { Snackbar, useSnackbar } from "@/components/ui/snackbar";
-import {
-  MilestoneForm,
-  EditMilestoneForm,
-} from "@/components/fundraisers/milestone-form";
-import { MilestoneList } from "@/components/fundraisers/milestone-list";
-import {
-  LinkForm,
-  EditLinkForm,
-  type Link as LinkType,
-} from "@/components/fundraisers/link-form";
-import { LinkList } from "@/components/fundraisers/link-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
 import SkeletonLoader from "@/components/common/skeleton-loader";
 
@@ -95,29 +84,13 @@ export interface Fundraiser {
   }>;
 }
 
-interface Milestone {
-  id: string;
-  fundraiserId: string;
-  stepNumber: number;
-  amount: string;
-  title: string;
-  purpose: string;
-  achieved: boolean;
-  achievedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export default function FundraiserDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   const api = useApi();
   const queryClient = useQueryClient();
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
-  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
-    null
-  );
-  const [editingLink, setEditingLink] = useState<LinkType | null>(null);
+
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
@@ -429,60 +402,6 @@ export default function FundraiserDetailPage() {
                   </p>
                 </div>
               </div>
-            </div>
-
-            {/* Milestones */}
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              {editingMilestone ? (
-                <EditMilestoneForm
-                  slug={slug}
-                  milestone={editingMilestone}
-                  onSuccess={() => {
-                    showSnackbar("Milestone updated successfully!", "success");
-                    setEditingMilestone(null);
-                  }}
-                  onError={(error) => showSnackbar(error, "error")}
-                  onCancel={() => setEditingMilestone(null)}
-                />
-              ) : (
-                <MilestoneForm
-                  fundraiserId={fundraiser.id}
-                  onSuccess={() =>
-                    showSnackbar("Milestone created successfully!", "success")
-                  }
-                  onError={(error) => showSnackbar(error, "error")}
-                />
-              )}
-              <MilestoneList
-                fundraiserId={fundraiser.id}
-                currency={fundraiser.currency}
-                onEditMilestone={setEditingMilestone}
-              />
-            </div>
-
-            {/* Links */}
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              {editingLink ? (
-                <EditLinkForm
-                  fundraiserId={fundraiser.id}
-                  link={editingLink}
-                  onSuccess={() => {
-                    showSnackbar("Link updated successfully!", "success");
-                    setEditingLink(null);
-                  }}
-                  onError={(error) => showSnackbar(error, "error")}
-                  onCancel={() => setEditingLink(null)}
-                />
-              ) : (
-                <LinkForm
-                  fundraiserId={fundraiser.id}
-                  onSuccess={() =>
-                    showSnackbar("Link created successfully!", "success")
-                  }
-                  onError={(error) => showSnackbar(error, "error")}
-                />
-              )}
-              <LinkList onEditLink={setEditingLink} fundraiser={fundraiser} />
             </div>
 
             {/* Gallery */}

@@ -20,6 +20,7 @@ import {
 } from "../ui/dialog";
 import { Snackbar, useSnackbar } from "../ui/snackbar";
 import { GalleryUpload, UploadType } from "@/components/ui/gallery-upload";
+import { toast } from "sonner";
 
 // Schema for milestone completion form
 const completeMilestoneSchema = z.object({
@@ -68,6 +69,7 @@ export interface Milestone {
 
 interface MilestoneListProps {
   fundraiserId: string;
+  slug: string;
   currency: string;
   onAddMilestone?: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
@@ -76,6 +78,7 @@ interface MilestoneListProps {
 
 export function MilestoneList({
   fundraiserId,
+  slug,
   currency,
   onAddMilestone,
   onEditMilestone,
@@ -113,10 +116,11 @@ export function MilestoneList({
       );
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setDeleteTarget(null);
       setConfirmOpen(false);
-      showSnackbar("Milestone deleted successfully!", "success");
+      toast.success("Milestone deleted successfully!");
     },
     onError: (error) => {
       showSnackbar(
@@ -140,6 +144,7 @@ export function MilestoneList({
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fundraiser", slug] });
       queryClient.invalidateQueries({ queryKey: ["milestones", fundraiserId] });
       setCompletingMilestone(null);
       setCompletionDialogOpen(false);
