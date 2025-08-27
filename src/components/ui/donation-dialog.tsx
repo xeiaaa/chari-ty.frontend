@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import * as z from "zod";
 import {
   Dialog,
@@ -68,6 +68,7 @@ function DonationFormContent({
   const stripe = useStripe();
   const elements = useElements();
   const api = useApi();
+  const queryClient = useQueryClient();
 
   // Get the alias from localStorage
   const [fundraiserAliasMap] = useLocalStorage<Record<string, string>>(
@@ -162,9 +163,24 @@ function DonationFormContent({
         result.paymentIntent &&
         result.paymentIntent.status === "succeeded"
       ) {
+        // Invalidate queries to refresh fundraiser data
+        queryClient.invalidateQueries({
+          queryKey: ["fundraiser", fundraiser.slug],
+        });
+
+        // "public-fundraiser", slug
+        queryClient.invalidateQueries({
+          queryKey: ["milestones", fundraiser.id],
+        });
+
         setSuccessMsg("Thank you for your donation!");
         reset();
         setTimeout(() => {
+          queryClient.invalidateQueries({
+            queryKey: ["public-fundraiser", fundraiser.slug],
+          });
+          console.info("invalidated queries");
+
           handleClose();
         }, 2000);
       }
