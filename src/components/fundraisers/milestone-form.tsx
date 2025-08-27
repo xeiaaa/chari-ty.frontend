@@ -62,6 +62,7 @@ interface MilestoneFormProps {
 
 interface EditMilestoneFormProps {
   slug: string;
+  fundraiserId: string;
   milestone: Milestone;
   onSuccess?: () => void;
   onError?: (error: string) => void;
@@ -209,6 +210,7 @@ export function MilestoneForm({
 
 export function EditMilestoneForm({
   slug,
+  fundraiserId,
   milestone,
   onSuccess,
   onError,
@@ -238,7 +240,7 @@ export function EditMilestoneForm({
   const updateMilestoneMutation = useMutation({
     mutationFn: async (data: UpdateMilestoneForm) => {
       const response = await api.patch(
-        `/fundraisers/${slug}/milestones/${milestone.id}`,
+        `/fundraisers/${fundraiserId}/milestones/${milestone.id}`,
         data
       );
       return response.data;

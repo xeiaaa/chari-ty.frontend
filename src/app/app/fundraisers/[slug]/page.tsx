@@ -36,6 +36,7 @@ import {
 import { LinkList } from "@/components/fundraisers/link-list";
 import { ArrowLeft, Calendar, Globe, Lock, Users } from "lucide-react";
 import SkeletonLoader from "@/components/common/skeleton-loader";
+import { toast } from "sonner";
 
 export interface Fundraiser {
   id: string;
@@ -436,6 +437,7 @@ export default function FundraiserDetailPage() {
               {editingMilestone ? (
                 <EditMilestoneForm
                   slug={slug}
+                  fundraiserId={fundraiser.id}
                   milestone={editingMilestone}
                   onSuccess={() => {
                     showSnackbar("Milestone updated successfully!", "success");
@@ -448,7 +450,7 @@ export default function FundraiserDetailPage() {
                 <MilestoneForm
                   fundraiserId={fundraiser.id}
                   onSuccess={() =>
-                    showSnackbar("Milestone created successfully!", "success")
+                    toast.success("Milestone created successfully!")
                   }
                   onError={(error) => showSnackbar(error, "error")}
                 />

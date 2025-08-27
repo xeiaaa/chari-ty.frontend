@@ -207,6 +207,7 @@ export default function EditFundraiserPage() {
           {editingMilestone ? (
             <EditMilestoneForm
               slug={slug}
+              fundraiserId={fundraiser.id}
               milestone={editingMilestone}
               onSuccess={() => {
                 showSnackbar("Milestone updated successfully!", "success");
