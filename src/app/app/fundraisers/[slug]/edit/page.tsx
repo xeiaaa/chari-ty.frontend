@@ -198,9 +198,6 @@ export default function EditFundraiserPage() {
             fundraiserId={fundraiser.id}
             slug={slug}
             existingGallery={fundraiser.fundraiserGallery}
-            onSuccess={() =>
-              showSnackbar("Gallery updated successfully!", "success")
-            }
             onError={(err) => showSnackbar(err, "error")}
           />
         </div>

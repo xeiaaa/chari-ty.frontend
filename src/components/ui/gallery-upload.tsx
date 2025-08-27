@@ -901,13 +901,6 @@ export function GalleryUpload({
               </Button>
               {uploadingFiles.size > 0 && (
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm font-medium">
-                      Uploading {uploadingFiles.size} file
-                      {uploadingFiles.size > 1 ? "s" : ""}...
-                    </span>
-                  </div>
                   <p className="text-xs text-muted-foreground">
                     You can continue adding more files while these upload
                   </p>
