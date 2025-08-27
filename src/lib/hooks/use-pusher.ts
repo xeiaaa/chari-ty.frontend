@@ -37,11 +37,6 @@ export const usePusher = () => {
     pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_API_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
       authEndpoint: "/api/pusher/auth",
-      auth: {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
     });
 
     // Subscribe to user's private channel
