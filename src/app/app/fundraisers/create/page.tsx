@@ -1,48 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import * as z from "zod";
+import React from "react";
+// import { useMutation, useQueryClient } from "@tanstack/react-query";
+// import { useRouter } from "next/navigation";
+// import * as z from "zod";
 import { Button } from "@/components/ui/button";
 
-import { useApi, getErrorMessage } from "@/lib/api";
-import { useAccount } from "@/contexts/account-context";
+// import { useApi, getErrorMessage } from "@/lib/api";
+// import { useAccount } from "@/contexts/account-context";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import {
-  FundraiserForm,
-  fundraiserSchema,
-} from "@/components/fundraisers/FundraiserForm";
+// import {
+//   FundraiserForm,
+//   fundraiserSchema,
+// } from "@/components/fundraisers/FundraiserForm";
+import { FundraiserMultiForm } from "@/components/fundraisers/fundraiser-multi-form";
 
-type CreateFundraiserForm = z.infer<typeof fundraiserSchema>;
+// type CreateFundraiserForm = z.infer<typeof fundraiserSchema>;
 
 export default function CreateFundraiserPage() {
-  const router = useRouter();
-  const api = useApi();
-  const queryClient = useQueryClient();
-  const { selectedAccount } = useAccount();
-  const [error, setError] = useState<string | null>(null);
+  // const router = useRouter();
+  // const api = useApi();
+  // const queryClient = useQueryClient();
+  // const { selectedAccount } = useAccount();
+  // const [error, setError] = useState<string | null>(null);
 
   // Create fundraiser mutation
-  const createFundraiserMutation = useMutation({
-    mutationFn: async (data: CreateFundraiserForm) => {
-      const payload = {
-        ...data,
-        endDate: data.endDate || undefined,
-        groupId: selectedAccount.id,
-      };
-      const response = await api.post("/fundraisers", payload);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fundraisers"] });
-      router.push("/app/fundraisers");
-    },
-    onError: (error) => {
-      setError(getErrorMessage(error));
-    },
-  });
+  // const createFundraiserMutation = useMutation({
+  //   mutationFn: async (data: CreateFundraiserForm) => {
+  //     const payload = {
+  //       ...data,
+  //       endDate: data.endDate || undefined,
+  //       groupId: selectedAccount.id,
+  //     };
+  //     const response = await api.post("/fundraisers", payload);
+  //     return response.data;
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["fundraisers"] });
+  //     router.push("/app/fundraisers");
+  //   },
+  //   onError: (error) => {
+  //     setError(getErrorMessage(error));
+  //   },
+  // });
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -64,7 +65,8 @@ export default function CreateFundraiserPage() {
       </div>
 
       <div className="space-y-6">
-        <FundraiserForm
+        <FundraiserMultiForm />
+        {/* <FundraiserForm
           defaultValues={{}}
           onSubmit={(data) => createFundraiserMutation.mutate(data)}
           submitLabel="Create Fundraiser"
@@ -76,7 +78,7 @@ export default function CreateFundraiserPage() {
               ? error
               : null
           }
-        />
+        /> */}
       </div>
     </div>
   );
