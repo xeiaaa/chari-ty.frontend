@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -145,30 +144,30 @@ export function MediaSection({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Media</h2>
+      <h2 className="text-2xl font-bold">Media</h2>
       <div className="space-y-2">
-        <Label>Cover Image</Label>
-
         {coverImagePreview ? (
           <div className="relative">
             <img
               src={coverImagePreview}
               alt="Cover preview"
-              className="w-full max-h-96 object-contain rounded-lg border"
+              className="w-full max-h-96 object-contain rounded-xl shadow-sm border"
             />
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              className="absolute top-2 right-2"
-              onClick={() => {
-                setCoverImagePreview(null);
-                onChange(null, true);
-              }}
-              disabled={isUploading} // prevent delete while uploading
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="absolute top-3 right-3 h-9 w-9 rounded-full shadow-md"
+                onClick={() => {
+                  setCoverImagePreview(null);
+                  onChange(null, true);
+                }}
+                disabled={isUploading} // prevent delete while uploading
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
             {isUploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
                 <div className="flex flex-col items-center gap-2 text-white">

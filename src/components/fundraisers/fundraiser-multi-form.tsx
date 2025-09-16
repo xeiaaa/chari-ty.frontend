@@ -167,36 +167,57 @@ export const FundraiserMultiForm = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-center">
-        {Array.from({ length: totalSteps }).map((_, index) => (
-          <div key={index} className="flex items-center">
-            <div
-              className={cn(
-                "w-4 h-4 rounded-full transition-all duration-300 ease-in-out",
-                index <= step ? "bg-primary" : "bg-primary/30",
-                index < step && "bg-primary"
-              )}
-            />
-            {index < totalSteps - 1 && (
-              <div
-                className={cn(
-                  "w-8 h-0.5",
-                  index < step ? "bg-primary" : "bg-primary/30"
-                )}
-              />
-            )}
+      <Card className="shadow-md rounded-2xl border border-border">
+        <CardContent className="space-y-6 p-6">
+          <div className="mt-4">
+            <h1 className="text-3xl font-bold mb-1">Create Fundraiser</h1>
+            <p className="text-muted-foreground">
+              Create a new fundraiser to start raising money for your cause
+            </p>
           </div>
-        ))}
-      </div>
-      <Card className="shadow-sm">
-        <CardContent>
+          <div className="relative flex items-center w-full">
+            {/* Progress line (background) */}
+            <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-200 -translate-y-1/2 z-0" />
+
+            {/* Progress line (active) */}
+            <div
+              className="absolute top-1/2 left-0 h-[2px] bg-bla -translate-y-1/2 z-0 transition-all duration-300"
+              style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }}
+            />
+
+            {/* TotlatotalSteps */}
+            <div className="flex justify-between w-full relative z-10">
+              {Array.from({ length: totalSteps }).map((_, index) => {
+                const stepNumber = index + 1;
+                const isActive = index === step;
+                const isCompleted = index < step;
+
+                return (
+                  <div
+                    key={index}
+                    className={cn(
+                      "w-8 h-8 flex items-center justify-center rounded-full border-2 font-medium text-sm",
+                      isActive && "bg-black border-black text-white",
+                      isCompleted && "bg-gray-500 border-gray-500 text-white",
+                      !isActive &&
+                        !isCompleted &&
+                        "bg-white border-gray-300 text-gray-400"
+                    )}
+                  >
+                    {stepNumber}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {step === 0 && (
             <form
               onSubmit={handleSubmit(onSubmitBasicInformation)}
               className="space-y-6"
             >
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Basic Information</h2>
+                <h2 className="text-2xl font-bold mb-2">Basic Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField<BasicInfoData>
                     label="Title"
@@ -242,7 +263,8 @@ export const FundraiserMultiForm = ({
             <>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Milestones</h2>
+                  <h2 className="text-2xl font-bold">Milestones</h2>
+
                   {milestones.length > 0 ? (
                     <Button
                       type="button"
@@ -256,7 +278,7 @@ export const FundraiserMultiForm = ({
                 </div>
 
                 {milestones.length === 0 ? (
-                  <div className="text-center py-8 bg-muted/50 border border-border rounded-lg">
+                  <div className="text-center p-12 rounded-lg border-2 border-dashed border-muted-foreground/25 shadow">
                     <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">
                       No milestones yet
@@ -339,14 +361,14 @@ export const FundraiserMultiForm = ({
                   Back
                 </Button>
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setShowReview(true)}
-                    disabled={isUploading}
-                  >
-                    Review
-                  </Button>
+                  {step === totalSteps - 1 && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowReview(true)}
+                    >
+                      Review
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     disabled={isUploading}
